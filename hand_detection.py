@@ -4,15 +4,7 @@ import cv2
 import mediapipe as mp
 from helper import *
 
-mp_drawing = mp.solutions.drawing_utils
-mp_drawing_styles = mp.solutions.drawing_styles
-mp_hands = mp.solutions.hands
-
-stored_keys = {}
-
-cap = cv2.VideoCapture(0)
-
-def process_image_hand_detection(image, stored_keys, key=None):
+def process_image_hand_detection(hands, image, stored_keys, key=None, mp_hands=mp.solutions.hands, mp_drawing=mp.solutions.drawing_utils, mp_drawing_styles=mp.solutions.drawing_styles):
 	# To improve performance, optionally mark the image as not writeable to
 	# pass by reference.
 	image.flags.writeable = False
@@ -52,26 +44,33 @@ def process_image_hand_detection(image, stored_keys, key=None):
 	
 	return image
 
+if __name__ == "__main__":
+	stored_keys = {}
+	cap = cv2.VideoCapture(0)
 
-with mp_hands.Hands(
-	static_image_mode=False,
-	max_num_hands=1, # TODO: Implement Multiplayer with multiple hands
-	model_complexity=0, # for faster speed
-	min_detection_confidence=0.8,
-	min_tracking_confidence=0.5) as hands:
-	while cap.isOpened():
-		success, image = cap.read()
-		if not success:
-			print("Ignoring empty camera frame.")
-			# If loading a video, use 'break' instead of 'continue'.
-			continue
+	mp_drawing = mp.solutions.drawing_utils
+	mp_drawing_styles = mp.solutions.drawing_styles
+	mp_hands = mp.solutions.hands
 
-		if cv2.waitKey(33) == ord('a'):
-			image = process_image_hand_detection(image, stored_keys, 'a')
-		else:
-			image = process_image_hand_detection(image, stored_keys)
-		cv2.imshow('MediaPipe Hands', image)
-		if cv2.waitKey(5) & 0xFF == 27:
-			break
+	with mp_hands.Hands(
+		static_image_mode=False,
+		max_num_hands=1, # TODO: Implement Multiplayer with multiple hands
+		model_complexity=0, # for faster speed
+		min_detection_confidence=0.8,
+		min_tracking_confidence=0.5) as hands:
+		while cap.isOpened():
+			success, image = cap.read()
+			if not success:
+				print("Ignoring empty camera frame.")
+				# If loading a video, use 'break' instead of 'continue'.
+				continue
 
-cap.release()
+			if cv2.waitKey(33) == ord('a'):
+				image = process_image_hand_detection(hands, image, stored_keys,'a')
+			else:
+				image = process_image_hand_detection(hands, image, stored_keys)
+			cv2.imshow('MediaPipe Hands', image)
+			if cv2.waitKey(5) & 0xFF == 27:
+				break
+
+	cap.release()

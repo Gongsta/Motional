@@ -61,27 +61,28 @@ def process_image_face_detection(image, stored_keys, key=None):
 	
 	return image
 
-# For webcam input:
-drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
-cap = cv2.VideoCapture(0)
-with mp_face_mesh.FaceMesh(
-		max_num_faces=1,
-		refine_landmarks=True,
-		min_detection_confidence=0.5,
-		min_tracking_confidence=0.5) as face_mesh:
-	while cap.isOpened():
-		success, image = cap.read()
-		if not success:
-			print("Ignoring empty camera frame.")
-			# If loading a video, use 'break' instead of 'continue'.
-			continue
+if __name__ == "__main__":
+	# For webcam input:
+	drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
+	cap = cv2.VideoCapture(0)
+	with mp_face_mesh.FaceMesh(
+			max_num_faces=1,
+			refine_landmarks=True,
+			min_detection_confidence=0.5,
+			min_tracking_confidence=0.5) as face_mesh:
+		while cap.isOpened():
+			success, image = cap.read()
+			if not success:
+				print("Ignoring empty camera frame.")
+				# If loading a video, use 'break' instead of 'continue'.
+				continue
 
-		if cv2.waitKey(33) == ord('a'):
-			process_image_face_detection(image, stored_keys, 'a')
-		else:
-			image = process_image_face_detection(image, stored_keys)
-		# Flip the image horizontally for a selfie-view display.
-		cv2.imshow('MediaPipe Face Mesh', image)
-		if cv2.waitKey(5) & 0xFF == 27:
-			break
-cap.release()
+			if cv2.waitKey(33) == ord('a'):
+				process_image_face_detection(image, stored_keys, 'a')
+			else:
+				image = process_image_face_detection(image, stored_keys)
+			# Flip the image horizontally for a selfie-view display.
+			cv2.imshow('MediaPipe Face Mesh', image)
+			if cv2.waitKey(5) & 0xFF == 27:
+				break
+	cap.release()

@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 org = (50, 50)
@@ -11,11 +12,24 @@ def process_landmark(landmark):
 	# print("landmark", (landmark[8]))
 	return 
 
+# fig = plt.figure()
+# ax = plt.axes(projection='3d')
+def plot_realtime(landmarks):
+	x = []
+	y = []
+	z = []
+	for landmark in landmarks:
+		x.append(landmark.x)
+		y.append(landmark.y)
+		z.append(landmark.z)
+	# ax.plot3D(x,y,z)
+	print(x)
+	plt.show(block=False)
+
 def check_mouth_open(landmarks):
 	return (landmarks[14].y - landmarks[13].y) > 0.5
 
 def check_jump(landmarks, reference):
-	
 	vertical_threshold = 0.1 # If there is a vertical increase by 0.1m, then we consider this a jump
 	# TODO: I don't know how this thresholding works, because being close and far from the camera plays a difference
 	# return (landmarks[i].y - landmarks[j].y) > vertical_treshold
@@ -86,4 +100,7 @@ def search_face_pose(landmark, stored_keys):
 	
 	return "No matches found"
 
+def search_body_pose(landmark, stored_keys):
+	# print(landmark)
+	return ""
 	
