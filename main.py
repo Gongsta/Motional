@@ -8,14 +8,58 @@ from hand_detection import process_image_hand_detection
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
-
 class App(customtkinter.CTk):
-
 	WIDTH = 950
 	HEIGHT = 600
 
 	def __init__(self):
 		super().__init__()
+
+		self.title("Montional")
+		self.geometry(f"{App.WIDTH}x{App.HEIGHT}")
+		self.protocol("WM_DELETE_WINDOW", self.on_closing)  # call .on_closing() when app gets closed
+		container = customtkinter.CTkFrame(self)
+		container.pack(side = "top", fill = "both", expand = True)
+
+		container.grid_rowconfigure(0, weight = 1)
+		container.grid_columnconfigure(0, weight = 1)
+
+		self.frames = {}
+
+		for F in (LoginPage, CapturePage):
+  
+			frame = F(container, self)
+  
+			# initializing frame of that object from
+			# startpage, page1, page2 respectively with
+			# for loop
+			self.frames[F] = frame
+  
+			frame.grid(row = 0, column = 0, sticky ="nsew")
+  
+		self.show_page(LoginPage)
+
+	def show_page(self, cont):
+		frame = self.frames[cont]
+		frame.tkraise()
+
+	def on_closing(self, event=0):
+		self.destroy()
+
+class LoginPage(customtkinter.CTkFrame):
+	def __init__(self, parent, controller):
+		super().__init__(master = parent)
+  
+		self.grid_rowconfigure(0, weight=1)
+		self.grid_columnconfigure(0, weight=1)
+
+		button = customtkinter.CTkButton(self, text ="Login with Google",
+		command = lambda : controller.show_page(CapturePage))
+		button.grid(row = 0, column = 0, padx = 10, pady = 10)
+
+class CapturePage(customtkinter.CTkFrame):
+	def __init__(self, parent, controller):
+		super().__init__(master = parent)
 		
 		self.mp_drawing = mp.solutions.drawing_utils
 		self.mp_drawing_styles = mp.solutions.drawing_styles
@@ -32,9 +76,6 @@ class App(customtkinter.CTk):
 		# self.resizable(False, False) # Remove the option to resize, TODO: Fix it so we can enable that
 
 		self.cap = cv2.VideoCapture(0)
-		self.title("INSERT APPNAME HERE") # TODO: Update name
-		self.geometry(f"{App.WIDTH}x{App.HEIGHT}")
-		self.protocol("WM_DELETE_WINDOW", self.on_closing)  # call .on_closing() when app gets closed
 
 		# ============ create two frames ============
 
@@ -197,6 +238,8 @@ class App(customtkinter.CTk):
 		# self.check_box_1.configure(state=tkinter.DISABLED, text="CheckBox disabled")
 		# self.check_box_2.select()
 
+		self.show_frame()
+
 	def show_frame(self):
 		_, image = self.cap.read()
 		image = process_image_hand_detection(self.hands, image, self.stored_hand_keys)
@@ -214,11 +257,7 @@ class App(customtkinter.CTk):
 	def change_appearance_mode(self, new_appearance_mode):
 		customtkinter.set_appearance_mode(new_appearance_mode)
 
-	def on_closing(self, event=0):
-		self.destroy()
-
 
 if __name__ == "__main__":
 	app = App()
-	app.show_frame()
 	app.mainloop()
