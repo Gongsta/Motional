@@ -8,19 +8,25 @@ from hand_detection import process_image_hand_detection
 import pyautogui
 import random
 import string
+import json
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
 users = {}
 
-class User():
-	def __init__(self, username, password):
-		self.scores = []
-		self.username = username
-		self.password = password
+# class User():
+# 	def __init__(self, username, password):
+# 		self.scores = []
+# 		self.username = username
+# 		self.password = password
 
-current_user = User("", "")
+# 	def toJSON(self):
+# 		return json.dumps(self, default=lambda o: o.__dict__, 
+# 			sort_keys=True, indent=4)
+
+# [username, password] using array for easier (de)serialization
+current_user = ["", ""]
 
 class App(customtkinter.CTk):
 	WIDTH = 930
@@ -28,6 +34,10 @@ class App(customtkinter.CTk):
 
 	def __init__(self):
 		super().__init__()
+
+		with open("users.json") as infile:
+			global users
+			users = json.load(infile)
 
 		self.title("Motional: Motion is All You Need")
 		self.geometry(f"{App.WIDTH}x{App.HEIGHT}")
@@ -58,6 +68,8 @@ class App(customtkinter.CTk):
 		frame.tkraise()
 
 	def on_closing(self, event=0):
+		with open("users.json", "w") as outfile:
+			json.dump(users, outfile)
 		self.destroy()
 
 class LoginPage(customtkinter.CTkFrame):
@@ -117,7 +129,7 @@ class LoginPage(customtkinter.CTkFrame):
 		username = self.username_entry.get()
 		password = self.password_entry.get()
 
-		if (username not in users.keys() or users[username].password != password):
+		if (username not in users.keys() or users[username][1] != password):
 			self.sign_up_info.configure(text="Sorry, wrong username/password.", fg="red")
 		else:
 			global current_user
@@ -133,7 +145,7 @@ class LoginPage(customtkinter.CTkFrame):
 		elif (username in users.keys()):
 			self.sign_up_info.configure(text="Sorry, this username is already taken. Please try a different one.", fg="red")
 		else:
-			users[username] = User(username, password)
+			users[username] = [username, password]
 			global current_user
 			current_user = users[username]
 			self.controller.show_page(CapturePage)
@@ -147,7 +159,7 @@ class LoginPage(customtkinter.CTkFrame):
 			suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
 			username = "Guest#" + suffix
 		
-		users[username] = User(username, password)
+		users[username] =[username, password]
 		global current_user
 		current_user = users[username]
 		self.controller.show_page(CapturePage)
@@ -242,7 +254,7 @@ class CapturePage(customtkinter.CTkFrame):
 
 		self.button_1 = customtkinter.CTkButton(master=self.frame_left,
 												text="Flappy Bird",
-												command=self.button_event)
+												command=self.flappy_bird)
 		self.button_1.grid(row=2, column=0, pady=10, padx=20)
 
 		self.button_2 = customtkinter.CTkButton(master=self.frame_left,
@@ -328,9 +340,13 @@ class CapturePage(customtkinter.CTkFrame):
 
 		self.show_frame()
 
+	def flappy_bird(self):
+		print("bird")
+
 	def show_frame(self):
-		if (self.update_username and current_user.username):
-			self.label_1.configure(text=current_user.username)
+		if (self.update_username and current_user[0]):
+			print(current_user[0])
+			self.label_1.configure(text=current_user[0])
 			self.update_username = False
 
 		_, image = self.cap.read()
@@ -381,6 +397,9 @@ class CapturePage(customtkinter.CTkFrame):
 		customtkinter.set_appearance_mode(new_appearance_mode)
 
 	def exit_capture(self):
+		self.update_username = True
+		global current_user
+		current_user = ["", ""]
 		self.controller.show_page(LoginPage)
 
 
