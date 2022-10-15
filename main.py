@@ -28,7 +28,7 @@ class App(customtkinter.CTk):
 
 		self.frames = {}
 
-		for F in (LoginPage, CapturePage):
+		for F in (LoginPage, UsernamePage, CapturePage):
   
 			frame = F(container, self)
   
@@ -37,7 +37,7 @@ class App(customtkinter.CTk):
 			# for loop
 			self.frames[F] = frame
   
-			frame.grid(row = 0, column = 0, sticky ="nsew")
+			frame.grid(row=0, column=0, sticky ="nsew")
   
 		self.show_page(LoginPage)
 
@@ -56,8 +56,41 @@ class LoginPage(customtkinter.CTkFrame):
 		self.grid_columnconfigure(0, weight=1)
 
 		button = customtkinter.CTkButton(self, text ="Login with Google",
-		command = lambda : controller.show_page(CapturePage))
-		button.grid(row = 0, column = 0, padx = 10, pady = 10)
+		command = lambda : controller.show_page(UsernamePage))
+		button.grid(row=0, column=0, padx=10, pady=10)
+
+class UsernamePage(customtkinter.CTkFrame):
+	def __init__(self, parent, controller):
+		super().__init__(master = parent)
+		self.controller = controller
+  
+		self.grid_rowconfigure((0, 3), weight=1)
+		self.grid_columnconfigure(0, weight=1)
+
+		self.text = customtkinter.CTkLabel(self, text="Create a username", justify=tk.LEFT)
+		self.text.grid(row=0, column=0, sticky="s")
+		self.username_entry = customtkinter.CTkEntry(self)
+		self.username_entry.grid(row=1, column=0)
+		self.label_1 = customtkinter.CTkLabel(self,
+											  text="",
+											  height=10,
+											  text_font=("Roboto Medium", 8),) 
+		self.label_1.grid(row=2, column=0);
+		self.button = customtkinter.CTkButton(self, text ="Submit",
+				command = self.submit_username)
+		self.button.grid(row=3, column=0, sticky="n")
+
+	def submit_username(self):
+		# TODO: replace with database check
+		username = self.username_entry.get()
+		if (username == "taken"):
+			self.label_1.configure(text="Sorry, this username is already taken. Please try a different one.",
+									fg="red")
+		else:
+			self.label_1.configure(text="Creation successful. Cool name!",
+									fg="green")
+			self.controller.show_page(CapturePage)
+
 
 class CapturePage(customtkinter.CTkFrame):
 	def __init__(self, parent, controller):
