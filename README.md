@@ -1,6 +1,13 @@
 # HackTheValley-7
+For this project, whenever we want to capture a new hand pose, this is the process: (NOT NEEDED, relative distance is enough)
+1. Capture a sequence of 50 landmarks (5 seconds, the capture happens around 10FPS) with the label true of the pose 
+	- There should be a countdown for this from a GUI perspective (NOT NEEDED)
+2. Train a Neural Network to learn these landmarks in the background, and
+display a loading bar
+3. 
 
 Ideas:
+- Add finger gesture recognition, so detecting sequences of motion (this is HARD, but super interesting!)
 - Add up to 4 person multiplayer, by splitting the camera feed into 4 quadrants
 
 ### Getting Started
