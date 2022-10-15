@@ -108,22 +108,22 @@ class CapturePage(customtkinter.CTkFrame):
 		self.frame_left.grid_rowconfigure(11, minsize=10)  # empty row with minsize as spacing
 
 		self.label_1 = customtkinter.CTkLabel(master=self.frame_left,
-											  text="CustomTkinter",
+											  text="Games",
 											  text_font=("Roboto Medium", -16))  # font name and size in px
 		self.label_1.grid(row=1, column=0, pady=10, padx=10)
 
 		self.button_1 = customtkinter.CTkButton(master=self.frame_left,
-												text="CTkButton",
+												text="Flappy Bird",
 												command=self.button_event)
 		self.button_1.grid(row=2, column=0, pady=10, padx=20)
 
 		self.button_2 = customtkinter.CTkButton(master=self.frame_left,
-												text="CTkButton",
+												text="Pong",
 												command=self.button_event)
 		self.button_2.grid(row=3, column=0, pady=10, padx=20)
 
 		self.button_3 = customtkinter.CTkButton(master=self.frame_left,
-												text="CTkButton",
+												text="Custom",
 												command=self.button_event)
 		self.button_3.grid(row=4, column=0, pady=10, padx=20)
 
@@ -182,13 +182,14 @@ class CapturePage(customtkinter.CTkFrame):
 		self.run_button = customtkinter.CTkButton(master=self.frame_right,
 													text="Run Gesture-Keyboard Control",
 													command=self.toggle_running_gesture_keyboard_control,
-													width=230
+													width=230,
+													fg_color="#58d35a", 
+													hover_color="#78c779"
 													)
 		self.run_button.grid(row=5, column=2, pady=10, padx=20, sticky="e")
 
 		# set default values
 		self.optionmenu_1.set("System")
-		self.button_3.configure(state="disabled", text="Disabled CTkButton")
 
 		self.show_frame()
 
