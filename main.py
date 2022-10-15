@@ -1,3 +1,6 @@
+import os
+import json
+import subprocess
 from math import fabs
 import tkinter as tk
 import customtkinter
@@ -5,7 +8,11 @@ import cv2
 import mediapipe as mp
 from PIL import ImageTk, Image
 from hand_detection import process_image_hand_detection
+from face_detection import process_image_face_detection
+from body_detection import process_image_body_detection, capture_initial_position, store_reference_position
 import pyautogui
+from threading import Thread
+import games.flappy_bird.flappy as flappy_bird
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -73,6 +80,19 @@ class CapturePage(customtkinter.CTkFrame):
 		min_detection_confidence=0.8,
 		min_tracking_confidence=0.5)
 		
+		self.mp_face_mesh = mp.solutions.face_mesh
+		self.face_mesh = self.mp_face_mesh.FaceMesh(
+			max_num_faces=1,
+			refine_landmarks=True,
+			min_detection_confidence=0.5,
+			min_tracking_confidence=0.5)
+		
+		self.mp_pose = mp.solutions.pose
+		self.pose = self.mp_pose.Pose(
+			min_detection_confidence=0.5,
+			min_tracking_confidence=0.5)
+
+
 		self.current_pose = "hand" # Can be "face" or "body"
 
 		self.stored_hand_keys = {}
@@ -82,6 +102,8 @@ class CapturePage(customtkinter.CTkFrame):
 		self.running_gesture_keyboard_control = False
 		self.storing_key = False # Will be used to check if we are storing hand keys
 		
+		self.body_reference_landmark = None
+		self.counter = 50 # Used as a countdown
 		# self.resizable(False, False) # Remove the option to resize, TODO: Fix it so we can enable that
 
 		self.cap = cv2.VideoCapture(0)
@@ -114,12 +136,12 @@ class CapturePage(customtkinter.CTkFrame):
 
 		self.button_1 = customtkinter.CTkButton(master=self.frame_left,
 												text="Flappy Bird",
-												command=self.button_event)
+												command=self.launch_flappy_bird)
 		self.button_1.grid(row=2, column=0, pady=10, padx=20)
 
 		self.button_2 = customtkinter.CTkButton(master=self.frame_left,
 												text="Pong",
-												command=self.button_event)
+												command=self.launch_pong)
 		self.button_2.grid(row=3, column=0, pady=10, padx=20)
 
 		self.button_3 = customtkinter.CTkButton(master=self.frame_left,
@@ -188,6 +210,31 @@ class CapturePage(customtkinter.CTkFrame):
 													)
 		self.run_button.grid(row=5, column=2, pady=10, padx=20, sticky="e")
 
+		self.hand_gesture_button = customtkinter.CTkButton(master=self.frame_right,
+													text="Hand",
+													command=self.toggle_hand,
+													)
+		self.hand_gesture_button.grid(row=0, column=0, pady=10, padx=20, sticky="e")
+		self.face_gesture_button = customtkinter.CTkButton(master=self.frame_right,
+													text="Face",
+													command=self.toggle_face,
+													)
+
+		self.face_gesture_button.grid(row=0, column=1, pady=10, padx=20, sticky="e")
+		self.body_gesture_button = customtkinter.CTkButton(master=self.frame_right,
+													text="Body",
+													command=self.toggle_body,
+													)
+
+		self.body_gesture_button.grid(row=0, column=2, pady=10, padx=20, sticky="e")
+
+		# self.reset_button = customtkinter.CTkButton(master=self.frame_right,
+		# 											text="Reset",
+		# 											command=self.reset,
+		# 											)
+
+		# self.reset_button.grid(row=0, column=2, pady=10, padx=20, sticky="e")
+
 		# set default values
 		self.optionmenu_1.set("System")
 
@@ -207,10 +254,27 @@ class CapturePage(customtkinter.CTkFrame):
 			self.stored_keys_text.grid(row=5, column=0)
 
 		else:
-			image, key = process_image_hand_detection(self.hands, image, self.stored_hand_keys)
-			if key and self.running_gesture_keyboard_control:
-				pyautogui.press(key)
-				
+			if self.current_pose == "hand":
+				image, key = process_image_hand_detection(self.hands, image, self.stored_hand_keys)
+				if key and self.running_gesture_keyboard_control:
+					pyautogui.press(key)
+
+			# Temporarily don't have keys for face and body because it's pretty hard to do many poses
+			elif self.current_pose == "face":
+				image = process_image_face_detection(self.face_mesh, image, self.stored_face_keys)
+			elif self.current_pose == "body":
+				image = process_image_body_detection(self.pose, image, self.stored_body_keys, self.body_reference_landmark)
+		
+		if self.current_pose == "body": 
+			if self.counter == 0 and not self.body_reference_landmark:
+				self.body_reference_landmark = store_reference_position(self.pose, image)
+
+			if (self.counter > 0):
+				image = capture_initial_position(image, self.counter)
+				self.counter -= 1
+
+
+
 		image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 		image = cv2.resize(image, (640, 360))
 		image = Image.fromarray(image)
@@ -221,6 +285,16 @@ class CapturePage(customtkinter.CTkFrame):
 
 	def save_key(self):
 		self.storing_key = True # This will be updated after self.show_frame, where self.storing_key will be reset to False
+
+	def toggle_hand(self):
+		self.current_pose = "hand"
+
+	def toggle_face(self):
+		self.current_pose = "face"
+		
+	def toggle_body(self):
+		self.current_pose = "body"
+	
 
 	def toggle_running_gesture_keyboard_control(self):
 		self.running_gesture_keyboard_control = not self.running_gesture_keyboard_control
@@ -234,6 +308,12 @@ class CapturePage(customtkinter.CTkFrame):
 			"hover_color": "#C77C78"
 		}
 		self.run_button.configure(**configuration)
+
+	def launch_flappy_bird(self):
+		subprocess.Popen(["cd {}/games/flappy_bird && python3 flappy.py".format(os.getcwd())], shell=True)
+	
+	def launch_pong(self):
+		subprocess.Popen(["cd {}/games/pong && python3 pong.py".format(os.getcwd())], shell=True)
 
 	def button_event(self):
 		print("Button pressed")

@@ -7,8 +7,6 @@ from pygame.locals import *
 
 sys.path.append("../../")
 
-from google_auth import oAuth
-
 FPS = 30
 SCREENWIDTH  = 288
 SCREENHEIGHT = 512
@@ -59,8 +57,6 @@ except NameError:
 
 
 def main():
-    condition = oAuth()
-    print(condition)
     global SCREEN, FPSCLOCK
     pygame.init()
     FPSCLOCK = pygame.time.Clock()
