@@ -1,3 +1,4 @@
+from math import fabs
 import tkinter as tk
 import customtkinter
 import cv2
@@ -8,11 +9,9 @@ from hand_detection import process_image_hand_detection
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
-
 class App(customtkinter.CTk):
-
-	WIDTH = 950
-	HEIGHT = 600
+	WIDTH = 930
+	HEIGHT = 580
 
 	def __init__(self):
 		super().__init__()
@@ -20,19 +19,26 @@ class App(customtkinter.CTk):
 		self.mp_drawing = mp.solutions.drawing_utils
 		self.mp_drawing_styles = mp.solutions.drawing_styles
 		self.mp_hands = mp.solutions.hands
-		self.stored_hand_keys = {}
 		self.hands = self.mp_hands.Hands(
 		static_image_mode=False,
 		max_num_hands=2, # TODO: Implement Multiplayer with multiple hands
 		model_complexity=0, # for faster speed
 		min_detection_confidence=0.8,
 		min_tracking_confidence=0.5)
+		
+		self.current_pose = "hand" # Can be "face" or "body"
 
+		self.stored_hand_keys = {}
+		self.stored_face_keys = {}
+		self.stored_body_keys = {}
+
+		self.running_stored_keys = False
+		self.storing_key = False # Will be used to check if we are storing hand keys
 		
 		# self.resizable(False, False) # Remove the option to resize, TODO: Fix it so we can enable that
 
 		self.cap = cv2.VideoCapture(0)
-		self.title("INSERT APPNAME HERE") # TODO: Update name
+		self.title("Motional: Motion is All You Need") 
 		self.geometry(f"{App.WIDTH}x{App.HEIGHT}")
 		self.protocol("WM_DELETE_WINDOW", self.on_closing)  # call .on_closing() when app gets closed
 
@@ -51,7 +57,6 @@ class App(customtkinter.CTk):
 		self.frame_right.grid(row=0, column=1, sticky="nswe", padx=20, pady=20)
 
 		# ============ frame_left ============
-
 		# configure grid layout (1x11)
 		self.frame_left.grid_rowconfigure(0, minsize=10)   # empty row with minsize as spacing
 		self.frame_left.grid_rowconfigure(5, weight=1)  # empty row as spacing
@@ -87,15 +92,11 @@ class App(customtkinter.CTk):
 		self.optionmenu_1.grid(row=10, column=0, pady=10, padx=20, sticky="w")
 
 		# # ============ frame_right ============
-
 		# # configure grid layout (3x7)
-		self.frame_right.rowconfigure((0, 1, 2, 3), weight=1)
-		self.frame_right.rowconfigure(7, weight=10)
+		self.frame_right.rowconfigure((0, 1, 2), weight=1)
 		self.frame_right.columnconfigure((0, 1), weight=1)
-		self.frame_right.columnconfigure(2, weight=0)
-
 		self.frame_info = customtkinter.CTkFrame(master=self.frame_right, width=1000)
-		self.frame_info.grid(row=0, column=0, columnspan=2, rowspan=4, pady=20, padx=20, sticky="nsew")
+		self.frame_info.grid(row=0, column=0, columnspan=8, rowspan=4, pady=20, padx=20, sticky="nsew")
 
 		# ============ frame_info ============
 
@@ -106,100 +107,58 @@ class App(customtkinter.CTk):
 
 		#Capture video frames
 		self.label_info_1 = customtkinter.CTkLabel(master=self.frame_info,
-												   text="CTkLabel: Lorem ipsum dolor sit,\n" +
-														"amet consetetur sadipscing elitr,\n" +
-														"sed diam nonumy eirmod tempor" ,
 												   height=540,
 												   width=960,
 												   corner_radius=6,  # <- custom corner radius
 												   )
 		self.label_info_1.grid(column=0, row=0, padx=5, pady=10)
 
-		# self.progressbar = customtkinter.CTkProgressBar(master=self.frame_info)
-		# self.progressbar.grid(row=1, column=0, sticky="ew", padx=15, pady=15)
 
 		# # ============ frame_right ============
+		self.text = customtkinter.CTkLabel(master=self.frame_right,
+													 text="Key: ",
+													 justify=tk.LEFT)
+		self.text.grid(row=4, column=0)
 
-		# self.radio_var = tkinter.IntVar(value=0)
+		self.key_entry = customtkinter.CTkEntry(master=self.frame_right,
+													 text="Enter Key")
+		self.key_entry.grid(row=4, column=1, pady=10, padx=20, sticky="w")
 
-		# self.label_radio_group = customtkinter.CTkLabel(master=self.frame_right,
-		# 												text="CTkRadioButton Group:")
-		# self.label_radio_group.grid(row=0, column=2, columnspan=1, pady=20, padx=10, sticky="")
+		self.save_button = customtkinter.CTkButton(master=self.frame_right,
+													 text="Save",
+													 command=self.save_key
+													 )
+		self.save_button.grid(row=4, column=2, pady=10, padx=20, sticky="w")
 
-		# self.radio_button_1 = customtkinter.CTkRadioButton(master=self.frame_right,
-		# 												   variable=self.radio_var,
-		# 												   value=0)
-		# self.radio_button_1.grid(row=1, column=2, pady=10, padx=20, sticky="n")
+		self.stored_keys_text = customtkinter.CTkLabel(master=self.frame_right,
+													 text=self.stored_hand_keys,
+													 justify=tk.LEFT)
+		self.stored_keys_text.grid(row=5, column=0)
+		self.run_button = customtkinter.CTkButton(master=self.frame_right,
+													 text="Run" if self.running_stored_keys else "Stop",
+													 command=self.toggle_running_stored_keys)
+		self.run_button.grid(row=5, column=2, pady=10, padx=20, sticky="w")
 
-		# self.radio_button_2 = customtkinter.CTkRadioButton(master=self.frame_right,
-		# 												   variable=self.radio_var,
-		# 												   value=1)
-		# self.radio_button_2.grid(row=2, column=2, pady=10, padx=20, sticky="n")
-
-		# self.radio_button_3 = customtkinter.CTkRadioButton(master=self.frame_right,
-		# 												   variable=self.radio_var,
-		# 												   value=2)
-		# self.radio_button_3.grid(row=3, column=2, pady=10, padx=20, sticky="n")
-
-		# self.slider_1 = customtkinter.CTkSlider(master=self.frame_right,
-		# 										from_=0,
-		# 										to=1,
-		# 										number_of_steps=3,
-		# 										command=self.progressbar.set)
-		# self.slider_1.grid(row=4, column=0, columnspan=2, pady=10, padx=20, sticky="we")
-
-		# self.slider_2 = customtkinter.CTkSlider(master=self.frame_right,
-		# 										command=self.progressbar.set)
-		# self.slider_2.grid(row=5, column=0, columnspan=2, pady=10, padx=20, sticky="we")
-
-		# self.switch_1 = customtkinter.CTkSwitch(master=self.frame_right,
-		# 										text="CTkSwitch")
-		# self.switch_1.grid(row=4, column=2, columnspan=1, pady=10, padx=20, sticky="we")
-
-		# self.switch_2 = customtkinter.CTkSwitch(master=self.frame_right,
-		# 										text="CTkSwitch")
-		# self.switch_2.grid(row=5, column=2, columnspan=1, pady=10, padx=20, sticky="we")
-
-		# self.combobox_1 = customtkinter.CTkComboBox(master=self.frame_right,
-		# 											values=["Value 1", "Value 2"])
-		# self.combobox_1.grid(row=6, column=2, columnspan=1, pady=10, padx=20, sticky="we")
-
-		self.check_box_1 = customtkinter.CTkCheckBox(master=self.frame_right,
-													 text="CTkCheckBox")
-		self.check_box_1.grid(row=6, column=0, pady=10, padx=20, sticky="w")
-
-		self.check_box_2 = customtkinter.CTkCheckBox(master=self.frame_right,
-													 text="CTkCheckBox")
-		self.check_box_2.grid(row=6, column=1, pady=10, padx=20, sticky="w")
-
-		self.entry = customtkinter.CTkEntry(master=self.frame_right,
-											width=120,
-											placeholder_text="CTkEntry")
-		self.entry.grid(row=8, column=0, columnspan=2, pady=20, padx=20, sticky="we")
-
-		# self.button_5 = customtkinter.CTkButton(master=self.frame_right,
-		# 										text="CTkButton",
-		# 										border_width=2,  # <- custom border_width
-		# 										fg_color=None,  # <- no fg_color
-		# 										command=self.button_event)
-		# self.button_5.grid(row=8, column=2, columnspan=1, pady=20, padx=20, sticky="we")
 
 		# set default values
 		self.optionmenu_1.set("System")
 		self.button_3.configure(state="disabled", text="Disabled CTkButton")
-		# self.combobox_1.set("CTkCombobox")
-		# self.radio_button_1.select()
-		# self.slider_1.set(0.2)
-		# self.slider_2.set(0.7)
-		# self.progressbar.set(0.5)
-		# self.switch_2.select()
-		# self.radio_button_3.configure(state=tkinter.DISABLED)
-		# self.check_box_1.configure(state=tkinter.DISABLED, text="CheckBox disabled")
-		# self.check_box_2.select()
 
 	def show_frame(self):
 		_, image = self.cap.read()
-		image = process_image_hand_detection(self.hands, image, self.stored_hand_keys)
+		if self.storing_key:
+			image = process_image_hand_detection(self.hands, image, self.stored_hand_keys, key=self.key_entry.get())
+			self.storing_key = False
+			self.key_entry.delete(0, tk.END)
+			
+			# TODO: Put in a function, Update the text
+			self.stored_keys_text = customtkinter.CTkLabel(master=self.frame_right,
+														text="Registered Keys " + self.stored_hand_keys.keys(),
+														justify=tk.LEFT)
+			self.stored_keys_text.grid(row=5, column=0)
+
+		else:
+			image = process_image_hand_detection(self.hands, image, self.stored_hand_keys)
 		image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 		image = cv2.resize(image, (640, 360))
 		image = Image.fromarray(image)
@@ -207,6 +166,17 @@ class App(customtkinter.CTk):
 		self.label_info_1.imgtk = imgtk
 		self.label_info_1.configure(image=imgtk)
 		self.label_info_1.after(50, self.show_frame) 
+
+	def save_key(self):
+		self.storing_key = True # This will be updated after self.show_frame, where self.storing_key will be reset to False
+
+	def toggle_running_stored_keys(self):
+		self.running_stored_keys = not self.running_stored_keys
+		# TODO: I don't know if this is REALLY BAD practice, i feel like it's stacking buttons on top of each other
+		self.run_button = customtkinter.CTkButton(master=self.frame_right,
+													 text="Run" if self.running_stored_keys else "Stop",
+													 command=self.toggle_running_stored_keys)
+		self.run_button.grid(row=5, column=2, pady=10, padx=20, sticky="w")
 
 	def button_event(self):
 		print("Button pressed")

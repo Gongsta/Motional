@@ -3,8 +3,11 @@ import random
 import sys
 import pygame
 from pygame.locals import *
-sys.path.append('Macintosh HD/Users/ash/Documents/HackTheValley-7/')
+
+sys.path.append("../../")
+
 import google_auth
+from google_auth import oAuth
 
 FPS = 30
 SCREENWIDTH  = 288
@@ -132,6 +135,8 @@ def main():
             movementInfo = showWelcomeAnimation()
             crashInfo = mainGame(movementInfo)
             showGameOverScreen(crashInfo)
+    else:
+        print("this is not working")
 
 
 def showWelcomeAnimation():
