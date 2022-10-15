@@ -172,14 +172,19 @@ class CapturePage(customtkinter.CTkFrame):
 													 text="Save",
 													 command=self.save_key
 													 )
-		self.save_button.grid(row=4, column=2, pady=10, padx=20, sticky="w")
+		self.save_button.grid(row=4, column=2, pady=10, padx=20, sticky="e")
 
 		self.stored_keys_text = customtkinter.CTkLabel(master=self.frame_right,
 													 text=self.stored_hand_keys,
 													 justify=tk.LEFT)
 		self.stored_keys_text.grid(row=5, column=0)
 		
-		self.refresh_run_button()
+		self.run_button = customtkinter.CTkButton(master=self.frame_right,
+													text="Run Gesture-Keyboard Control",
+													command=self.toggle_running_gesture_keyboard_control,
+													width=230
+													)
+		self.run_button.grid(row=5, column=2, pady=10, padx=20, sticky="e")
 
 		# set default values
 		self.optionmenu_1.set("System")
@@ -218,21 +223,20 @@ class CapturePage(customtkinter.CTkFrame):
 
 	def toggle_running_gesture_keyboard_control(self):
 		self.running_gesture_keyboard_control = not self.running_gesture_keyboard_control
-		self.refresh_run_button()
+		configuration = {
+			"text": "Run Gesture-Keyboard Control",
+			"fg_color": "#58d35a", 
+			"hover_color": "#78c779"
+		} if not self.running_gesture_keyboard_control else {
+			"text": "Stop Gesture-Keyboard Control",
+			"fg_color": "#D35B58", 
+			"hover_color": "#C77C78"
+		}
+		self.run_button.configure(**configuration)
 
 	def button_event(self):
 		print("Button pressed")
-
-	def refresh_run_button(self):
-		try:
-			self.run_button.pack_forget()
-		except:
-			print("Creating a new run button")
-
-		self.run_button = customtkinter.CTkButton(master=self.frame_right,
-													 text="Run Gesture-Keyboard Control" if not self.running_gesture_keyboard_control else "Stop",
-													 command=self.toggle_running_gesture_keyboard_control)
-		self.run_button.grid(row=5, column=2, pady=10, padx=20, sticky="w")
+		
 	def change_appearance_mode(self, new_appearance_mode):
 		customtkinter.set_appearance_mode(new_appearance_mode)
 
