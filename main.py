@@ -11,11 +11,27 @@ from hand_detection import process_image_hand_detection
 from face_detection import process_image_face_detection
 from body_detection import process_image_body_detection, capture_initial_position, store_reference_position
 import pyautogui
-from threading import Thread
-import games.flappy_bird.flappy as flappy_bird
+import random
+import string
+import json
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
+
+users = {}
+
+# class User():
+# 	def __init__(self, username, password):
+# 		self.scores = []
+# 		self.username = username
+# 		self.password = password
+
+# 	def toJSON(self):
+# 		return json.dumps(self, default=lambda o: o.__dict__, 
+# 			sort_keys=True, indent=4)
+
+# [username, password] using array for easier (de)serialization
+current_user = ["", ""]
 
 class App(customtkinter.CTk):
 	WIDTH = 930
@@ -23,6 +39,10 @@ class App(customtkinter.CTk):
 
 	def __init__(self):
 		super().__init__()
+
+		with open("users.json") as infile:
+			global users
+			users = json.load(infile)
 
 		self.title("Motional: Motion is All You Need")
 		self.geometry(f"{App.WIDTH}x{App.HEIGHT}")
@@ -44,7 +64,7 @@ class App(customtkinter.CTk):
 			# for loop
 			self.frames[F] = frame
   
-			frame.grid(row = 0, column = 0, sticky ="nsew")
+			frame.grid(row=0, column=0, sticky ="nsew")
   
 		self.show_page(LoginPage)
 
@@ -53,22 +73,140 @@ class App(customtkinter.CTk):
 		frame.tkraise()
 
 	def on_closing(self, event=0):
+		with open("users.json", "w") as outfile:
+			json.dump(users, outfile)
 		self.destroy()
 
 class LoginPage(customtkinter.CTkFrame):
 	def __init__(self, parent, controller):
 		super().__init__(master = parent)
+		self.controller = controller
   
 		self.grid_rowconfigure(0, weight=1)
 		self.grid_columnconfigure(0, weight=1)
 
-		button = customtkinter.CTkButton(self, text ="Login with Google",
-		command = lambda : controller.show_page(CapturePage))
-		button.grid(row = 0, column = 0, padx = 10, pady = 10)
+		self.grid_rowconfigure((0, 9), weight=1)
+		self.grid_columnconfigure(0, weight=1)
+
+		self.text = customtkinter.CTkLabel(self, text="username", justify=tk.LEFT)
+		self.text.grid(row=0, column=0, sticky="s")
+		self.username_entry = customtkinter.CTkEntry(self)
+		self.username_entry.grid(row=1, column=0)
+		self.label_1 = customtkinter.CTkLabel(self,
+											  text="",
+											  height=10,
+											  text_font=("Roboto Medium", 8),) 
+		self.label_1.grid(row=2, column=0)
+		
+		self.text = customtkinter.CTkLabel(self, text="password", justify=tk.LEFT)
+		self.text.grid(row=2, column=0, sticky="s")
+		self.password_entry = customtkinter.CTkEntry(self)
+		self.password_entry.grid(row=3, column=0)
+		self.label_2 = customtkinter.CTkLabel(self,
+											  text="",
+											  height=10,
+											  text_font=("Roboto Medium", 8),) 
+		self.label_2.grid(row=4, column=0)
+
+		self.button = customtkinter.CTkButton(self, text ="Login",
+				command = self.login)
+		self.button.grid(row=5, column=0, sticky="n", pady=5)
+
+		# self.login_info = customtkinter.CTkLabel(self, text="placeholder", justify=tk.LEFT, text_font=("Roboto Medium", 8))
+		# self.login_info.grid(row=6, column=0, sticky="s")
+		
+		self.button = customtkinter.CTkButton(self, text ="Sign up",
+				command = self.sign_up)
+		self.button.grid(row=7, column=0, sticky="n")
+
+		self.sign_up_info = customtkinter.CTkLabel(self, text="or", justify=tk.LEFT, text_font=("Roboto Medium", 12))
+		self.sign_up_info.grid(row=8, column=0, sticky="s")
+
+		self.button = customtkinter.CTkButton(self, text ="Authenticate as guest",
+				command = self.guest_login)
+		self.button.grid(row=9, column=0, sticky="n")
+
+		# button = customtkinter.CTkButton(self, text ="Login with Google",
+		# command = lambda : controller.show_page(UsernamePage))
+		# button.grid(row=0, column=0, padx=10, pady=10)
+
+	def login(self):
+		username = self.username_entry.get()
+		password = self.password_entry.get()
+
+		if (username not in users.keys() or users[username][1] != password):
+			self.sign_up_info.configure(text="Sorry, wrong username/password.", fg="red")
+		else:
+			global current_user
+			current_user = users[username]
+			self.controller.show_page(CapturePage)
+
+	def sign_up(self):
+		username = self.username_entry.get()
+		password = self.password_entry.get()
+		
+		if (not len(username) or not len(password)):
+			self.sign_up_info.configure(text="Sorry, empty username/password.", fg="red")
+		elif (username in users.keys()):
+			self.sign_up_info.configure(text="Sorry, this username is already taken. Please try a different one.", fg="red")
+		else:
+			users[username] = [username, password]
+			global current_user
+			current_user = users[username]
+			self.controller.show_page(CapturePage)
+
+	def guest_login(self):
+		suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+		username = "Guest#" + suffix
+		password = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+
+		while (username in users.keys()):
+			suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+			username = "Guest#" + suffix
+		
+		users[username] =[username, password]
+		global current_user
+		current_user = users[username]
+		self.controller.show_page(CapturePage)
+
+# class UsernamePage(customtkinter.CTkFrame):
+# 	def __init__(self, parent, controller):
+# 		super().__init__(master = parent)
+# 		self.controller = controller
+  
+# 		self.grid_rowconfigure((0, 3), weight=1)
+# 		self.grid_columnconfigure(0, weight=1)
+
+# 		self.text = customtkinter.CTkLabel(self, text="Create a username", justify=tk.LEFT)
+# 		self.text.grid(row=0, column=0, sticky="s")
+# 		self.username_entry = customtkinter.CTkEntry(self)
+# 		self.username_entry.grid(row=1, column=0)
+# 		self.label_1 = customtkinter.CTkLabel(self,
+# 											  text="",
+# 											  height=10,
+# 											  text_font=("Roboto Medium", 8),) 
+# 		self.label_1.grid(row=2, column=0)
+# 		self.button = customtkinter.CTkButton(self, text ="Submit",
+# 				command = self.submit_username)
+# 		self.button.grid(row=3, column=0, sticky="n")
+
+# 	def submit_username(self):
+# 		# TODO: replace with database check
+# 		username = self.username_entry.get()
+# 		if (username == "taken"):
+# 			self.label_1.configure(text="Sorry, this username is already taken. Please try a different one.",
+# 									fg="red")
+# 		else:
+# 			self.label_1.configure(text="Creation successful. Cool name!",
+# 									fg="green")
+# 			self.controller.show_page(CapturePage)
+
 
 class CapturePage(customtkinter.CTkFrame):
 	def __init__(self, parent, controller):
 		super().__init__(master = parent)
+		self.controller = controller
+		self.update_username = True
 		
 		self.mp_drawing = mp.solutions.drawing_utils
 		self.mp_drawing_styles = mp.solutions.drawing_styles
@@ -130,7 +268,7 @@ class CapturePage(customtkinter.CTkFrame):
 		self.frame_left.grid_rowconfigure(11, minsize=10)  # empty row with minsize as spacing
 
 		self.label_1 = customtkinter.CTkLabel(master=self.frame_left,
-											  text="Games",
+											  text="",
 											  text_font=("Roboto Medium", -16))  # font name and size in px
 		self.label_1.grid(row=1, column=0, pady=10, padx=10)
 
@@ -156,6 +294,13 @@ class CapturePage(customtkinter.CTkFrame):
 														values=["Light", "Dark", "System"],
 														command=self.change_appearance_mode)
 		self.optionmenu_1.grid(row=10, column=0, pady=10, padx=20, sticky="w")
+
+		self.exit = customtkinter.CTkButton(master=self.frame_left,
+												text="Exit",
+												command=self.exit_capture,
+												fg_color="#D35B58", 
+												hover_color="#C77C78")
+		self.exit.grid(row=11, column=0, pady=10, padx=20, sticky="w")
 
 		# # ============ frame_right ============
 		# # configure grid layout (3x7)
@@ -241,6 +386,10 @@ class CapturePage(customtkinter.CTkFrame):
 		self.show_frame()
 
 	def show_frame(self):
+		if (self.update_username and current_user[0]):
+			self.label_1.configure(text=current_user[0])
+			self.update_username = False
+
 		_, image = self.cap.read()
 		if self.storing_key:
 			image, key = process_image_hand_detection(self.hands, image, self.stored_hand_keys, key=self.key_entry.get())
@@ -320,6 +469,12 @@ class CapturePage(customtkinter.CTkFrame):
 		
 	def change_appearance_mode(self, new_appearance_mode):
 		customtkinter.set_appearance_mode(new_appearance_mode)
+
+	def exit_capture(self):
+		self.update_username = True
+		global current_user
+		current_user = ["", ""]
+		self.controller.show_page(LoginPage)
 
 
 if __name__ == "__main__":
