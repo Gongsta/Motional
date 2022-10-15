@@ -17,7 +17,7 @@ db = connect()
 # Making a CRUD API
 
 # Create
-def write(db, data):
+def write(data):
     if type(data) == None:
         print("No data")
         return
@@ -29,22 +29,22 @@ def write(db, data):
     db.insert_one(data)
 
 # Read
-def read(db, email):
+def read(email):
     if type(email) == None:
         print("No email provided")
         return
     return db.find_one({"email": email})
 
 # Update
-def update(db, email, data):
+def update(email, data, dataType):
     if type(email) == None or type(data) == None:
         print(f"Provide valid data\nEmail: {email} | Data: {data}")
         return
     
-    db.update_one({"email": email}, {"$set":{"name": data}})
+    db.update_one({"email": email}, {"$set":{dataType: data}})
 
 # Delete
-def delete(db, email):
+def delete(email):
     if type(email) == None:
         print("No email provided")
         return
@@ -54,8 +54,6 @@ object = {
     "name": "Ayush Garg",
     "email": "ayushrgarg@gmail.com"
 }
-
-# write(db, object) Works!
 
 # print(read(db, "ayushrgarg@gmail.com")['name']) Works!
 
