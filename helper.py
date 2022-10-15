@@ -45,7 +45,7 @@ def search_hand_pose(landmark, stored_keys):
 	
 	Expects landmark to be given as relative positions.
 	"""
-	max_dist = 0.02
+	max_dist = 0.03
 
 	for key in stored_keys:
 		works = True

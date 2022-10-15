@@ -12,12 +12,47 @@ stored_keys = {}
 
 cap = cv2.VideoCapture(0)
 
-TOTAL_TRAINING_COUNT = 50
-training_count = 0
+def process_image_hand_detection(image, stored_keys, key=None):
+	# To improve performance, optionally mark the image as not writeable to
+	# pass by reference.
+	image.flags.writeable = False
+	image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+	results = hands.process(image)
 
-X = None
-y = None
-start_training = False
+	# Draw the hand annotations on the image.
+	image.flags.writeable = True
+	image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+	if results.multi_hand_landmarks:
+		for hand_landmarks in results.multi_hand_world_landmarks:
+			process_landmark(hand_landmarks.landmark)
+			if key:
+				print("Key pressed: " + key)
+				store_new_pose(hand_landmarks.landmark, key, stored_keys)
+				print(stored_keys)
+
+			text = search_hand_pose(hand_landmarks.landmark, stored_keys) # TODO: Add counter if this is too slow
+
+		for hand_landmarks in results.multi_hand_landmarks:
+			mp_drawing.draw_landmarks(
+				image,
+				hand_landmarks,
+				mp_hands.HAND_CONNECTIONS,
+				mp_drawing_styles.get_default_hand_landmarks_style(),
+				mp_drawing_styles.get_default_hand_connections_style())
+
+		# Flip the image horizontally for a selfie-view display.
+		image = cv2.flip(image, 1)
+		image = cv2.putText(image, text, org, font, 
+							fontScale, color, thickness, cv2.LINE_AA)
+	else:
+		image = cv2.flip(image, 1)
+		text = "No Hands Detected"
+		image = cv2.putText(image, text, org, font, 
+							fontScale, color, thickness, cv2.LINE_AA)
+	
+	return image
+
+
 with mp_hands.Hands(
 	static_image_mode=False,
 	max_num_hands=1, # TODO: Implement Multiplayer with multiple hands
@@ -31,43 +66,10 @@ with mp_hands.Hands(
 			# If loading a video, use 'break' instead of 'continue'.
 			continue
 
-		# To improve performance, optionally mark the image as not writeable to
-		# pass by reference.
-		image.flags.writeable = False
-		image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-		results = hands.process(image)
-
-		# Draw the hand annotations on the image.
-		image.flags.writeable = True
-		image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-		if results.multi_hand_landmarks:
-			for hand_landmarks in results.multi_hand_world_landmarks:
-				process_landmark(hand_landmarks.landmark)
-				if cv2.waitKey(33) == ord('a'):
-					print("Key pressed: " + "a")
-					store_new_pose(hand_landmarks.landmark, 'a', stored_keys)
-					print(stored_keys)
-
-				text = search_hand_pose(hand_landmarks.landmark, stored_keys) # TODO: Add counter if this is too slow
-
-			for hand_landmarks in results.multi_hand_landmarks:
-				mp_drawing.draw_landmarks(
-					image,
-					hand_landmarks,
-					mp_hands.HAND_CONNECTIONS,
-					mp_drawing_styles.get_default_hand_landmarks_style(),
-					mp_drawing_styles.get_default_hand_connections_style())
-
-			# Flip the image horizontally for a selfie-view display.
-			image = cv2.flip(image, 1)
-			image = cv2.putText(image, text, org, font, 
-								fontScale, color, thickness, cv2.LINE_AA)
+		if cv2.waitKey(33) == ord('a'):
+			image = process_image_hand_detection(image, stored_keys, 'a')
 		else:
-			image = cv2.flip(image, 1)
-			text = "No Hands Detected"
-			image = cv2.putText(image, text, org, font, 
-								fontScale, color, thickness, cv2.LINE_AA)
-
+			image = process_image_hand_detection(image, stored_keys)
 		cv2.imshow('MediaPipe Hands', image)
 		if cv2.waitKey(5) & 0xFF == 27:
 			break
