@@ -14,7 +14,7 @@ layout = [
     ],
     [sg.Image(filename="", key="-IMAGE-", expand_x=True, expand_y=True)],
     [sg.Text("Key bind:"), sg.InputText(key="-IN-", enable_events=True, size=(2, 2))],
-    [sg.Button("SAVE")],
+    [sg.Button("SAVE"), sg.Button("DELETE")],
     [sg.Text("Saved keys: []", key="-SAVEDKEYS-")],
     [sg.Button("RUN", key="-RUN-")],
     [sg.Button("Exit")],
@@ -36,6 +36,10 @@ while True:
     if (event == "SAVE" and values["-IN-"]):
         motions[values["-IN-"]] = imgbytes
         # sg.Popup("saved")
+        window.Element("-SAVEDKEYS-").update("Saved keys: " + str(list(motions.keys())))
+        window.Element("-IN-").update("")
+    elif (event == "DELETE"):
+        motions.pop(values["-IN-"], None)
         window.Element("-SAVEDKEYS-").update("Saved keys: " + str(list(motions.keys())))
         window.Element("-IN-").update("")
     elif (event == "-RUN-"):
