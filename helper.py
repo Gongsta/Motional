@@ -11,6 +11,16 @@ def process_landmark(landmark):
 	# print("landmark", (landmark[8]))
 	return 
 
+def check_mouth_open(landmarks):
+	return (landmarks[14].y - landmarks[13].y) > 0.5
+
+def check_jump(landmarks, reference):
+	
+	vertical_threshold = 0.1 # If there is a vertical increase by 0.1m, then we consider this a jump
+	# TODO: I don't know how this thresholding works, because being close and far from the camera plays a difference
+	# return (landmarks[i].y - landmarks[j].y) > vertical_treshold
+	return None
+
 def compute_distance(curr, target):
 	# Compute the distance between two points
 	return np.sqrt((target.x-curr.x)**2 + (target.y-curr.y)**2 + (target.z - curr.z)**2)
