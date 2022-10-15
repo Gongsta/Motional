@@ -182,7 +182,8 @@ class CapturePage(customtkinter.CTkFrame):
 		self.run_button = customtkinter.CTkButton(master=self.frame_right,
 													text="Run Gesture-Keyboard Control",
 													command=self.toggle_running_gesture_keyboard_control,
-													width=220)
+													width=230
+													)
 		self.run_button.grid(row=5, column=2, pady=10, padx=20, sticky="e")
 
 		# set default values
@@ -222,7 +223,16 @@ class CapturePage(customtkinter.CTkFrame):
 
 	def toggle_running_gesture_keyboard_control(self):
 		self.running_gesture_keyboard_control = not self.running_gesture_keyboard_control
-		self.run_button.configure(text="Run Gesture-Keyboard Control" if not self.running_gesture_keyboard_control else "Stop")
+		configuration = {
+			"text": "Run Gesture-Keyboard Control",
+			"fg_color": "#58d35a", 
+			"hover_color": "#78c779"
+		} if not self.running_gesture_keyboard_control else {
+			"text": "Stop Gesture-Keyboard Control",
+			"fg_color": "#D35B58", 
+			"hover_color": "#C77C78"
+		}
+		self.run_button.configure(**configuration)
 
 	def button_event(self):
 		print("Button pressed")
