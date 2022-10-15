@@ -7,6 +7,7 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+import json
 
 # If modifying these scopes, delete the file token.json.
 SCOPES = ['https://www.googleapis.com/auth/contacts.readonly']
@@ -17,9 +18,9 @@ def oAuth():
     # The file token.json stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
+    token = "lol"
     if os.path.exists('token.json'):
         creds = Credentials.from_authorized_user_file('token.json', SCOPES)
-        print(creds)
         if creds:
             return True
         else:
@@ -29,10 +30,21 @@ def oAuth():
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
+            # data = json.load(creds.to_json())
+            # print(data.client_id)
+            # creds.to_json()['client_id'] # returns json            
+            return json.loads(creds.to_json())['client_id']
+            
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
+            flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
             creds = flow.run_local_server(port=0)
+            # data = json.load(creds.to_json())
+            # print(data.client_id)
+            # creds.to_json()['client_id']
+            # print(creds.to_json())
+            # print(type(creds.to_json()))
+            return json.loads(creds.to_json())['client_id']
+            
         # Save the credentials for the next run
         # with open('token.json', 'w') as token:
         #     token.write(creds.to_json())
@@ -56,4 +68,5 @@ def oAuth():
     # except HttpError as err:
     #     print(err)
 
-oAuth()
+if __name__ == "__main__":
+    oAuth()

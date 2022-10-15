@@ -9,51 +9,48 @@ def connect():
 
     client = MongoClient(db_password)
     print("Successfully Connected")
-    collection = client.main
-    return collection.main
+    return client
 
-db = connect()
 
 # Making a CRUD API
 
 # Create
-def write(data):
+def write(db, data):
     if type(data) == None:
         print("No data")
         return
     # for loop to add multiple pieces of data
-    if type(data) == list:
-        for doc in data:
-            db.insert_one(doc)
-            return
+    # if type(data) == list:
+    #     for doc in data:
+    #         db.insert_one(doc)
+    #         return
     db.insert_one(data)
 
 # Read
-def read(email):
-    if type(email) == None:
+def read(db, id):
+    if not id:
         print("No email provided")
         return
-    return db.find_one({"email": email})
+    if type(db["main"].find_one({"id": id})) == str:
+        return db["main"].find_one({"id": id})
+    else:
+        return False
 
 # Update
-def update(email, data, dataType):
-    if type(email) == None or type(data) == None:
+def update(db, email, data, dataType):
+    if email is None or data is None:
         print(f"Provide valid data\nEmail: {email} | Data: {data}")
         return
     
     db.update_one({"email": email}, {"$set":{dataType: data}})
 
 # Delete
-def delete(email):
+def delete(db, email):
     if type(email) == None:
         print("No email provided")
         return
     db.delete_one({"email": email})
 
-object = {
-    "name": "Ayush Garg",
-    "email": "ayushrgarg@gmail.com"
-}
 
 # print(read(db, "ayushrgarg@gmail.com")['name']) Works!
 
