@@ -12,14 +12,15 @@ layout = [
         sg.Radio("Hand", "RADIO1", key=0, default=True), 
         sg.Radio("Head", "RADIO1", key=1)
     ],
-    [sg.Image(filename="", key="-IMAGE-", size=(400, 200))],
-    [sg.Text("Key bind:"), sg.InputText(key="-IN-", enable_events=True)],
+    [sg.Image(filename="", key="-IMAGE-", expand_x=True, expand_y=True)],
+    [sg.Text("Key bind:"), sg.InputText(key="-IN-", enable_events=True, size=(2, 2))],
     [sg.Button("SAVE")],
+    [sg.Text("Saved keys: []", key="-SAVEDKEYS-")],
     [sg.Button("RUN", key="-RUN-")],
     [sg.Button("Exit")],
 ]
 
-window = sg.Window("Motion", layout, element_justification="c")
+window = sg.Window("Motion", layout, resizable=True, element_justification="c")
 cap = cv2.VideoCapture(0)
 
 while True:
@@ -34,8 +35,8 @@ while True:
     imgbytes = cv2.imencode(".png", frame)[1].tobytes()
     if (event == "SAVE" and values["-IN-"]):
         motions[values["-IN-"]] = imgbytes
-        sg.Popup("saved")
-        print(motions.keys())
+        # sg.Popup("saved")
+        window.Element("-SAVEDKEYS-").update("Saved keys: " + str(list(motions.keys())))
         window.Element("-IN-").update("")
     elif (event == "-RUN-"):
         run_text = "RUN" if run_text == "STOP" else "STOP"
