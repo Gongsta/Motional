@@ -6,7 +6,17 @@ For this project, whenever we want to capture a new hand pose, this is the proce
 display a loading bar
 3. 
 
+
+Pitch:
+- The mouth playing is also a way to gamify practice. Certain people with disabilities need to practice exercising certain muscles such as their mouths. So this is a really good way to get people to practice.
+
+
+TODO:
+- Add jumping with pose
+
 Ideas:
+- Store Configuration for gesture -> control mapping
+	- Display gesture -> control mapping in case people forget what configuration they had
 - Add finger gesture recognition, so detecting sequences of motion (this is HARD, but super interesting!)
 - Add up to 4 person multiplayer, by splitting the camera feed into 4 quadrants
 
