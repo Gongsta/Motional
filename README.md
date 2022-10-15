@@ -1,5 +1,7 @@
 # HackTheValley-7
 
+Ideas:
+- Add up to 4 person multiplayer, by splitting the camera feed into 4 quadrants
 
 ### Getting Started
 These instructions are Macbook specific.
