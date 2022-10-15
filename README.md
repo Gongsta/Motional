@@ -21,3 +21,9 @@ source env/bin/activate # Activate a virtual environment
 pip install -r requirements.txt
 
 ```
+
+You might also need to install additional packages, such as Tkinter.
+```bash
+brew install python-tk
+
+```

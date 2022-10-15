@@ -8,6 +8,59 @@ mp_face_mesh = mp.solutions.face_mesh
 
 
 stored_keys = {}
+def process_image_face_detection(image, stored_keys, key=None):
+	"""
+	store is an additional argument if you want to store it to the dict of stored_keys
+	
+	"""
+	# To improve performance, optionally mark the image as not writeable to
+	# pass by reference.
+	image.flags.writeable = False
+	image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+	results = face_mesh.process(image)
+
+	# Draw the face mesh annotations on the image.
+	image.flags.writeable = True
+	image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+	if results.multi_face_landmarks:
+		for face_landmarks in results.multi_face_landmarks:
+			if key:
+				store_new_pose(face_landmarks.landmark, key, stored_keys)
+
+			text = search_face_pose(face_landmarks.landmark, stored_keys) # TODO: Add counter if this is too slow
+			mp_drawing.draw_landmarks(
+					image=image,
+					landmark_list=face_landmarks,
+					connections=mp_face_mesh.FACEMESH_TESSELATION,
+					landmark_drawing_spec=None,
+					connection_drawing_spec=mp_drawing_styles
+					.get_default_face_mesh_tesselation_style())
+			mp_drawing.draw_landmarks(
+					image=image,
+					landmark_list=face_landmarks,
+					connections=mp_face_mesh.FACEMESH_CONTOURS,
+					landmark_drawing_spec=None,
+					connection_drawing_spec=mp_drawing_styles
+					.get_default_face_mesh_contours_style())
+			mp_drawing.draw_landmarks(
+					image=image,
+					landmark_list=face_landmarks,
+					connections=mp_face_mesh.FACEMESH_IRISES,
+					landmark_drawing_spec=None,
+					connection_drawing_spec=mp_drawing_styles
+					.get_default_face_mesh_iris_connections_style())
+
+		image = cv2.flip(image, 1)
+		image = cv2.putText(image, text, org, font, 
+							fontScale, color, thickness, cv2.LINE_AA)
+	else:
+		image = cv2.flip(image, 1)
+		text = "No Face Detected"
+		image = cv2.putText(image, text, org, font, 
+							fontScale, color, thickness, cv2.LINE_AA)
+	
+	return image
+
 # For webcam input:
 drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 cap = cv2.VideoCapture(0)
@@ -23,56 +76,12 @@ with mp_face_mesh.FaceMesh(
 			# If loading a video, use 'break' instead of 'continue'.
 			continue
 
-		# To improve performance, optionally mark the image as not writeable to
-		# pass by reference.
-		image.flags.writeable = False
-		image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-		results = face_mesh.process(image)
-
-		# Draw the face mesh annotations on the image.
-		image.flags.writeable = True
-		image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-		if results.multi_face_landmarks:
-			for face_landmarks in results.multi_face_landmarks:
-
-				if cv2.waitKey(33) == ord('a'):
-					print("Key pressed: " + "a")
-					store_new_pose(face_landmarks.landmark, 'a', stored_keys)
-					print(stored_keys)
-
-				text = search_face_pose(face_landmarks.landmark, stored_keys) # TODO: Add counter if this is too slow
-				mp_drawing.draw_landmarks(
-						image=image,
-						landmark_list=face_landmarks,
-						connections=mp_face_mesh.FACEMESH_TESSELATION,
-						landmark_drawing_spec=None,
-						connection_drawing_spec=mp_drawing_styles
-						.get_default_face_mesh_tesselation_style())
-				mp_drawing.draw_landmarks(
-						image=image,
-						landmark_list=face_landmarks,
-						connections=mp_face_mesh.FACEMESH_CONTOURS,
-						landmark_drawing_spec=None,
-						connection_drawing_spec=mp_drawing_styles
-						.get_default_face_mesh_contours_style())
-				mp_drawing.draw_landmarks(
-						image=image,
-						landmark_list=face_landmarks,
-						connections=mp_face_mesh.FACEMESH_IRISES,
-						landmark_drawing_spec=None,
-						connection_drawing_spec=mp_drawing_styles
-						.get_default_face_mesh_iris_connections_style())
-
-			image = cv2.putText(image, text, org, font, 
-								fontScale, color, thickness, cv2.LINE_AA)
-			image = cv2.flip(image, 1)
+		if cv2.waitKey(33) == ord('a'):
+			process_image_face_detection(image, stored_keys, 'a')
 		else:
-			image = cv2.flip(image, 1)
-			text = "No Face Detected"
-			image = cv2.putText(image, text, org, font, 
-								fontScale, color, thickness, cv2.LINE_AA)
+			image = process_image_face_detection(image, stored_keys)
 		# Flip the image horizontally for a selfie-view display.
-		cv2.imshow('MediaPipe Face Mesh', cv2.flip(image, 1))
+		cv2.imshow('MediaPipe Face Mesh', image)
 		if cv2.waitKey(5) & 0xFF == 27:
 			break
 cap.release()
