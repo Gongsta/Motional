@@ -69,9 +69,9 @@ def search_hand_pose(landmark, stored_keys):
 				works = False
 				break
 		if works:
-			return "Matching key found: " + key
+			return key
 	
-	return "No matches found"
+	return None
 
 def search_face_pose(landmark, stored_keys):
 	"""

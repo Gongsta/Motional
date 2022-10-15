@@ -5,6 +5,7 @@ import cv2
 import mediapipe as mp
 from PIL import ImageTk, Image
 from hand_detection import process_image_hand_detection
+import pyautogui
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -32,7 +33,7 @@ class App(customtkinter.CTk):
 		self.stored_face_keys = {}
 		self.stored_body_keys = {}
 
-		self.running_stored_keys = False
+		self.running_gesture_keyboard_control = False
 		self.storing_key = False # Will be used to check if we are storing hand keys
 		
 		# self.resizable(False, False) # Remove the option to resize, TODO: Fix it so we can enable that
@@ -134,11 +135,8 @@ class App(customtkinter.CTk):
 													 text=self.stored_hand_keys,
 													 justify=tk.LEFT)
 		self.stored_keys_text.grid(row=5, column=0)
-		self.run_button = customtkinter.CTkButton(master=self.frame_right,
-													 text="Run" if self.running_stored_keys else "Stop",
-													 command=self.toggle_running_stored_keys)
-		self.run_button.grid(row=5, column=2, pady=10, padx=20, sticky="w")
-
+		
+		self.refresh_run_button()
 
 		# set default values
 		self.optionmenu_1.set("System")
@@ -147,18 +145,21 @@ class App(customtkinter.CTk):
 	def show_frame(self):
 		_, image = self.cap.read()
 		if self.storing_key:
-			image = process_image_hand_detection(self.hands, image, self.stored_hand_keys, key=self.key_entry.get())
+			image, key = process_image_hand_detection(self.hands, image, self.stored_hand_keys, key=self.key_entry.get())
 			self.storing_key = False
 			self.key_entry.delete(0, tk.END)
 			
 			# TODO: Put in a function, Update the text
 			self.stored_keys_text = customtkinter.CTkLabel(master=self.frame_right,
-														text="Registered Keys " + self.stored_hand_keys.keys(),
+														text="Registered Keys " + str(list(self.stored_hand_keys.keys())),
 														justify=tk.LEFT)
 			self.stored_keys_text.grid(row=5, column=0)
 
 		else:
-			image = process_image_hand_detection(self.hands, image, self.stored_hand_keys)
+			image, key = process_image_hand_detection(self.hands, image, self.stored_hand_keys)
+			if key and self.running_gesture_keyboard_control:
+				pyautogui.press(key)
+				
 		image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 		image = cv2.resize(image, (640, 360))
 		image = Image.fromarray(image)
@@ -170,17 +171,23 @@ class App(customtkinter.CTk):
 	def save_key(self):
 		self.storing_key = True # This will be updated after self.show_frame, where self.storing_key will be reset to False
 
-	def toggle_running_stored_keys(self):
-		self.running_stored_keys = not self.running_stored_keys
-		# TODO: I don't know if this is REALLY BAD practice, i feel like it's stacking buttons on top of each other
-		self.run_button = customtkinter.CTkButton(master=self.frame_right,
-													 text="Run" if self.running_stored_keys else "Stop",
-													 command=self.toggle_running_stored_keys)
-		self.run_button.grid(row=5, column=2, pady=10, padx=20, sticky="w")
+	def toggle_running_gesture_keyboard_control(self):
+		self.running_gesture_keyboard_control = not self.running_gesture_keyboard_control
+		self.refresh_run_button()
 
 	def button_event(self):
 		print("Button pressed")
 
+	def refresh_run_button(self):
+		try:
+			self.run_button.pack_forget()
+		except:
+			print("Creating a new run button")
+
+		self.run_button = customtkinter.CTkButton(master=self.frame_right,
+													 text="Run Gesture-Keyboard Control" if not self.running_gesture_keyboard_control else "Stop",
+													 command=self.toggle_running_gesture_keyboard_control)
+		self.run_button.grid(row=5, column=2, pady=10, padx=20, sticky="w")
 	def change_appearance_mode(self, new_appearance_mode):
 		customtkinter.set_appearance_mode(new_appearance_mode)
 
