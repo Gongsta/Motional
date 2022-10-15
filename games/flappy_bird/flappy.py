@@ -4,6 +4,11 @@ import sys
 import pygame
 from pygame.locals import *
 
+sys.path.append("../../")
+
+import google_auth
+from google_auth import oAuth
+
 FPS = 30
 SCREENWIDTH  = 288
 SCREENHEIGHT = 512
@@ -54,81 +59,84 @@ except NameError:
 
 
 def main():
-    global SCREEN, FPSCLOCK
-    pygame.init()
-    FPSCLOCK = pygame.time.Clock()
-    SCREEN = pygame.display.set_mode((SCREENWIDTH, SCREENHEIGHT))
-    pygame.display.set_caption('Flappy Bird')
+    if oAuth():
+        global SCREEN, FPSCLOCK
+        pygame.init()
+        FPSCLOCK = pygame.time.Clock()
+        SCREEN = pygame.display.set_mode((SCREENWIDTH, SCREENHEIGHT))
+        pygame.display.set_caption('Flappy Bird')
 
-    # numbers sprites for score display
-    IMAGES['numbers'] = (
-        pygame.image.load('assets/sprites/0.png').convert_alpha(),
-        pygame.image.load('assets/sprites/1.png').convert_alpha(),
-        pygame.image.load('assets/sprites/2.png').convert_alpha(),
-        pygame.image.load('assets/sprites/3.png').convert_alpha(),
-        pygame.image.load('assets/sprites/4.png').convert_alpha(),
-        pygame.image.load('assets/sprites/5.png').convert_alpha(),
-        pygame.image.load('assets/sprites/6.png').convert_alpha(),
-        pygame.image.load('assets/sprites/7.png').convert_alpha(),
-        pygame.image.load('assets/sprites/8.png').convert_alpha(),
-        pygame.image.load('assets/sprites/9.png').convert_alpha()
-    )
+        # numbers sprites for score display
+        IMAGES['numbers'] = (
+            pygame.image.load('assets/sprites/0.png').convert_alpha(),
+            pygame.image.load('assets/sprites/1.png').convert_alpha(),
+            pygame.image.load('assets/sprites/2.png').convert_alpha(),
+            pygame.image.load('assets/sprites/3.png').convert_alpha(),
+            pygame.image.load('assets/sprites/4.png').convert_alpha(),
+            pygame.image.load('assets/sprites/5.png').convert_alpha(),
+            pygame.image.load('assets/sprites/6.png').convert_alpha(),
+            pygame.image.load('assets/sprites/7.png').convert_alpha(),
+            pygame.image.load('assets/sprites/8.png').convert_alpha(),
+            pygame.image.load('assets/sprites/9.png').convert_alpha()
+        )
 
-    # game over sprite
-    IMAGES['gameover'] = pygame.image.load('assets/sprites/gameover.png').convert_alpha()
-    # message sprite for welcome screen
-    IMAGES['message'] = pygame.image.load('assets/sprites/message.png').convert_alpha()
-    # base (ground) sprite
-    IMAGES['base'] = pygame.image.load('assets/sprites/base.png').convert_alpha()
+        # game over sprite
+        IMAGES['gameover'] = pygame.image.load('assets/sprites/gameover.png').convert_alpha()
+        # message sprite for welcome screen
+        IMAGES['message'] = pygame.image.load('assets/sprites/message.png').convert_alpha()
+        # base (ground) sprite
+        IMAGES['base'] = pygame.image.load('assets/sprites/base.png').convert_alpha()
 
-    # sounds
-    if 'win' in sys.platform:
-        soundExt = '.wav'
+        # sounds
+        if 'win' in sys.platform:
+            soundExt = '.wav'
+        else:
+            soundExt = '.ogg'
+
+        SOUNDS['die']    = pygame.mixer.Sound('assets/audio/die' + soundExt)
+        SOUNDS['hit']    = pygame.mixer.Sound('assets/audio/hit' + soundExt)
+        SOUNDS['point']  = pygame.mixer.Sound('assets/audio/point' + soundExt)
+        SOUNDS['swoosh'] = pygame.mixer.Sound('assets/audio/swoosh' + soundExt)
+        SOUNDS['wing']   = pygame.mixer.Sound('assets/audio/wing' + soundExt)
+
+        while True:
+            # select random background sprites
+            randBg = random.randint(0, len(BACKGROUNDS_LIST) - 1)
+            IMAGES['background'] = pygame.image.load(BACKGROUNDS_LIST[randBg]).convert()
+
+            # select random player sprites
+            randPlayer = random.randint(0, len(PLAYERS_LIST) - 1)
+            IMAGES['player'] = (
+                pygame.image.load(PLAYERS_LIST[randPlayer][0]).convert_alpha(),
+                pygame.image.load(PLAYERS_LIST[randPlayer][1]).convert_alpha(),
+                pygame.image.load(PLAYERS_LIST[randPlayer][2]).convert_alpha(),
+            )
+
+            pipeindex = 0
+            IMAGES['pipe'] = (
+                pygame.transform.flip(
+                    pygame.image.load(PIPES_LIST[pipeindex]).convert_alpha(), False, True),
+                pygame.image.load(PIPES_LIST[pipeindex]).convert_alpha(),
+            )
+
+            # hitmask for pipes
+            HITMASKS['pipe'] = (
+                getHitmask(IMAGES['pipe'][0]),
+                getHitmask(IMAGES['pipe'][1]),
+            )
+
+            # hitmask for player
+            HITMASKS['player'] = (
+                getHitmask(IMAGES['player'][0]),
+                getHitmask(IMAGES['player'][1]),
+                getHitmask(IMAGES['player'][2]),
+            )
+
+            movementInfo = showWelcomeAnimation()
+            crashInfo = mainGame(movementInfo)
+            showGameOverScreen(crashInfo)
     else:
-        soundExt = '.ogg'
-
-    SOUNDS['die']    = pygame.mixer.Sound('assets/audio/die' + soundExt)
-    SOUNDS['hit']    = pygame.mixer.Sound('assets/audio/hit' + soundExt)
-    SOUNDS['point']  = pygame.mixer.Sound('assets/audio/point' + soundExt)
-    SOUNDS['swoosh'] = pygame.mixer.Sound('assets/audio/swoosh' + soundExt)
-    SOUNDS['wing']   = pygame.mixer.Sound('assets/audio/wing' + soundExt)
-
-    while True:
-        # select random background sprites
-        randBg = random.randint(0, len(BACKGROUNDS_LIST) - 1)
-        IMAGES['background'] = pygame.image.load(BACKGROUNDS_LIST[randBg]).convert()
-
-        # select random player sprites
-        randPlayer = random.randint(0, len(PLAYERS_LIST) - 1)
-        IMAGES['player'] = (
-            pygame.image.load(PLAYERS_LIST[randPlayer][0]).convert_alpha(),
-            pygame.image.load(PLAYERS_LIST[randPlayer][1]).convert_alpha(),
-            pygame.image.load(PLAYERS_LIST[randPlayer][2]).convert_alpha(),
-        )
-
-        pipeindex = 0
-        IMAGES['pipe'] = (
-            pygame.transform.flip(
-                pygame.image.load(PIPES_LIST[pipeindex]).convert_alpha(), False, True),
-            pygame.image.load(PIPES_LIST[pipeindex]).convert_alpha(),
-        )
-
-        # hitmask for pipes
-        HITMASKS['pipe'] = (
-            getHitmask(IMAGES['pipe'][0]),
-            getHitmask(IMAGES['pipe'][1]),
-        )
-
-        # hitmask for player
-        HITMASKS['player'] = (
-            getHitmask(IMAGES['player'][0]),
-            getHitmask(IMAGES['player'][1]),
-            getHitmask(IMAGES['player'][2]),
-        )
-
-        movementInfo = showWelcomeAnimation()
-        crashInfo = mainGame(movementInfo)
-        showGameOverScreen(crashInfo)
+        print("this is not working")
 
 
 def showWelcomeAnimation():
