@@ -105,7 +105,7 @@ class LoginPage(customtkinter.CTkFrame):
 
 		self.button = customtkinter.CTkButton(self, text ="Login",
 				command = self.login)
-		self.button.grid(row=5, column=0, sticky="n")
+		self.button.grid(row=5, column=0, sticky="n", pady=5)
 
 		# self.login_info = customtkinter.CTkLabel(self, text="placeholder", justify=tk.LEFT, text_font=("Roboto Medium", 8))
 		# self.login_info.grid(row=6, column=0, sticky="s")
@@ -114,7 +114,7 @@ class LoginPage(customtkinter.CTkFrame):
 				command = self.sign_up)
 		self.button.grid(row=7, column=0, sticky="n")
 
-		self.sign_up_info = customtkinter.CTkLabel(self, text="placeholder", justify=tk.LEFT, text_font=("Roboto Medium", 8))
+		self.sign_up_info = customtkinter.CTkLabel(self, text="or", justify=tk.LEFT, text_font=("Roboto Medium", 12))
 		self.sign_up_info.grid(row=8, column=0, sticky="s")
 
 		self.button = customtkinter.CTkButton(self, text ="Authenticate as guest",
@@ -345,7 +345,6 @@ class CapturePage(customtkinter.CTkFrame):
 
 	def show_frame(self):
 		if (self.update_username and current_user[0]):
-			print(current_user[0])
 			self.label_1.configure(text=current_user[0])
 			self.update_username = False
 
