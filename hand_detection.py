@@ -23,7 +23,7 @@ def process_image_hand_detection(hands, image, stored_keys, key=None, mp_hands=m
 				store_new_pose(hand_landmarks.landmark, key, stored_keys)
 				print(stored_keys)
 
-			text = search_hand_pose(hand_landmarks.landmark, stored_keys) # TODO: Add counter if this is too slow
+			text = search_hand_pose(hand_landmarks.landmark, stored_keys)
 			if text:
 				image_text = "Matching key found: " + text
 			else:

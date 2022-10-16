@@ -1,14 +1,14 @@
 import cv2
 import mediapipe as mp
 from helper import *
+import pyautogui
 
-mp_drawing = mp.solutions.drawing_utils
-mp_drawing_styles = mp.solutions.drawing_styles
-mp_face_mesh = mp.solutions.face_mesh
+def check_mouth_open(landmarks):
+	print("checking")
+	return (landmarks[14].y - landmarks[13].y) > 0.05
 
 
-stored_keys = {}
-def process_image_face_detection(image, stored_keys, key=None):
+def process_image_face_detection(face_mesh, image, stored_keys, key=None, mp_drawing=mp.solutions.drawing_utils, mp_drawing_styles=mp.solutions.drawing_styles, mp_face_mesh=mp.solutions.face_mesh):
 	"""
 	store is an additional argument if you want to store it to the dict of stored_keys
 	
@@ -26,6 +26,10 @@ def process_image_face_detection(image, stored_keys, key=None):
 		for face_landmarks in results.multi_face_landmarks:
 			if key:
 				store_new_pose(face_landmarks.landmark, key, stored_keys)
+
+			if check_mouth_open(face_landmarks.landmark):
+				print("mouth is open")
+				pyautogui.press(" ")
 
 			text = search_face_pose(face_landmarks.landmark, stored_keys) # TODO: Add counter if this is too slow
 			mp_drawing.draw_landmarks(
@@ -62,8 +66,13 @@ def process_image_face_detection(image, stored_keys, key=None):
 	return image
 
 if __name__ == "__main__":
+	stored_keys = {}
+
+	mp_drawing = mp.solutions.drawing_utils
+	mp_drawing_styles = mp.solutions.drawing_styles
+	mp_face_mesh = mp.solutions.face_mesh
+
 	# For webcam input:
-	drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 	cap = cv2.VideoCapture(0)
 	with mp_face_mesh.FaceMesh(
 			max_num_faces=1,
@@ -78,9 +87,10 @@ if __name__ == "__main__":
 				continue
 
 			if cv2.waitKey(33) == ord('a'):
-				process_image_face_detection(image, stored_keys, 'a')
+				process_image_face_detection(face_mesh, image, stored_keys, 'a')
 			else:
-				image = process_image_face_detection(image, stored_keys)
+				image = process_image_face_detection(face_mesh, image, stored_keys)
+			
 			# Flip the image horizontally for a selfie-view display.
 			cv2.imshow('MediaPipe Face Mesh', image)
 			if cv2.waitKey(5) & 0xFF == 27:
