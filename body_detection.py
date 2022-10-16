@@ -74,7 +74,7 @@ def process_image_body_detection(pose, image, stored_keys, reference_landmark, k
 			pyautogui.press(" ")
 
 		# plot_realtime(results.pose_landmarks.landmark) # TODO: Add graph visualization if you have time
-		text = search_body_pose(results.pose_landmarks.landmark, stored_keys)
+		text = "Body is Detected"
 		mp_drawing.draw_landmarks(
 			image,
 			results.pose_landmarks,
@@ -85,7 +85,13 @@ def process_image_body_detection(pose, image, stored_keys, reference_landmark, k
 		text = "No Body Detected"
 
 	image = cv2.flip(image, 1)
-	image = cv2.putText(image, text, org, font, 
+
+	textsize = cv2.getTextSize(text, font, fontScale, thickness)[0]
+
+	# get coords based on boundary
+	textX = (image.shape[1] - textsize[0]) // 2
+	textY = 900
+	image = cv2.putText(image, text, (textX, textY), font, 
 						fontScale, color, thickness, cv2.LINE_AA)
 
 	return image
@@ -97,8 +103,8 @@ def capture_initial_position(image, counter):
 	Once the counter reaches 0, we initiate the picture capture
 	
 	"""
-	image = cv2.putText(image, "Countdown: " + str(counter / 10), org, font, 
-						2, color, thickness, cv2.LINE_AA)
+	image = cv2.putText(image, "Countdown: " + str(counter / 10), (600, 100), font, 
+						3, color, 12, cv2.LINE_AA)
 	
 	return image
 

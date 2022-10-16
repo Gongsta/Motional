@@ -60,4 +60,3 @@ object = {
 # update(db, "ayushrgarg@gmail.com", "Ayush") Works!
 
 # delete(db, "ayushrgarg@gmail.com") Works!
-

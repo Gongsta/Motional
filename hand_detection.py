@@ -7,7 +7,7 @@ from helper import *
 def process_image_hand_detection(hands, image, stored_keys, key=None, mp_hands=mp.solutions.hands, mp_drawing=mp.solutions.drawing_utils, mp_drawing_styles=mp.solutions.drawing_styles):
 	# To improve performance, optionally mark the image as not writeable to
 	# pass by reference.
-	text = None
+	text = ""
 	image.flags.writeable = False
 	image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 	results = hands.process(image)
@@ -25,9 +25,9 @@ def process_image_hand_detection(hands, image, stored_keys, key=None, mp_hands=m
 
 			text = search_hand_pose(hand_landmarks.landmark, stored_keys)
 			if text:
-				image_text = "Matching key found: " + text
+				image_text = "Key Detected: " + text
 			else:
-				image_text = "No matches found"
+				image_text = "Hand is Detected"
 
 		for hand_landmarks in results.multi_hand_landmarks:
 			mp_drawing.draw_landmarks(
@@ -39,7 +39,13 @@ def process_image_hand_detection(hands, image, stored_keys, key=None, mp_hands=m
 
 		# Flip the image horizontally for a selfie-view display.
 		image = cv2.flip(image, 1)
-		image = cv2.putText(image, image_text, org, font, 
+
+		textsize = cv2.getTextSize(image_text, font, fontScale, thickness)[0]
+		# get coords based on boundary
+		textX = (image.shape[1] - textsize[0]) // 2
+		textY = 900
+
+		image = cv2.putText(image, image_text, (textX, textY), font, 
 							fontScale, color, thickness, cv2.LINE_AA)
 	else:
 		image = cv2.flip(image, 1)
