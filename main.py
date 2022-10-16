@@ -29,17 +29,6 @@ PATH = os.path.dirname(os.path.realpath(__file__))
 BUTTON_COLOR = "#fedd03"
 BUTTON_COLOR_HOVER = "#ffc800"
 
-# class User():
-# 	def __init__(self, username, password):
-# 		self.scores = []
-# 		self.username = username
-# 		self.password = password
-
-# 	def toJSON(self):
-# 		return json.dumps(self, default=lambda o: o.__dict__, 
-# 			sort_keys=True, indent=4)
-
-# [username, password_hash] using array for easier (de)serialization
 current_user = ["", ""]
 
 class App(customtkinter.CTk):
@@ -184,38 +173,6 @@ class LoginPage(customtkinter.CTkFrame):
 		current_user = users[username]
 		self.controller.show_page(CapturePage)
 		self.sign_up_info.configure(text="or", fg="white")
-
-# class UsernamePage(customtkinter.CTkFrame):
-# 	def __init__(self, parent, controller):
-# 		super().__init__(master = parent)
-# 		self.controller = controller
-  
-# 		self.grid_rowconfigure((0, 3), weight=1)
-# 		self.grid_columnconfigure(0, weight=1)
-
-# 		self.text = customtkinter.CTkLabel(self, text="Create a username", justify=tk.LEFT)
-# 		self.text.grid(row=0, column=0, sticky="s")
-# 		self.username_entry = customtkinter.CTkEntry(self)
-# 		self.username_entry.grid(row=1, column=0)
-# 		self.label_1 = customtkinter.CTkLabel(self,
-# 											  text="",
-# 											  height=10,
-# 											  text_font=("Roboto Medium", 8),) 
-# 		self.label_1.grid(row=2, column=0)f
-# 		self.button = customtkinter.CTkButton(self, text ="Submit",
-# 				command = self.submit_username)
-# 		self.button.grid(row=3, column=0, sticky="n")
-
-# 	def submit_username(self):
-# 		# TODO: replace with database check
-# 		username = self.username_entry.get()
-# 		if (username == "taken"):
-# 			self.label_1.configure(text="Sorry, this username is already taken. Please try a different one.",
-# 									fg="red")
-# 		else:
-# 			self.label_1.configure(text="Creation successful. Cool name!",
-# 									fg="green")
-# 			self.controller.show_page(CapturePage)
 
 
 class CapturePage(customtkinter.CTkFrame):
