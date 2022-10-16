@@ -146,7 +146,7 @@ class LoginPage(customtkinter.CTkFrame):
 
 	def login(self):
 		username = self.username_entry.get()
-		password = self.password_entry.get()
+		password = self.password_entry.get().encode('utf-8')
 
 		if (username not in users.keys() or not bcrypt.checkpw(password, users[username][1])):
 			self.sign_up_info.configure(text="Sorry, wrong username/password.", fg="red")
@@ -158,7 +158,7 @@ class LoginPage(customtkinter.CTkFrame):
 
 	def sign_up(self):
 		username = self.username_entry.get()
-		password = self.password_entry.get()
+		password = self.password_entry.get().encode('utf-8')
 		
 		if (not len(username) or not len(password)):
 			self.sign_up_info.configure(text="Sorry, empty username/password.", fg="red")
@@ -174,7 +174,7 @@ class LoginPage(customtkinter.CTkFrame):
 	def guest_login(self):
 		suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
 		username = "Guest#" + suffix
-		password = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+		password = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8)).encode('utf-8')
 
 		while (username in users.keys()):
 			suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
