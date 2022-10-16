@@ -45,7 +45,7 @@ class App(customtkinter.CTk):
 				global users
 				users = json.load(infile)
 			except Exception as e:
-				print("Error loading users" + str(e))
+				pass
 
 		self.title("Motional: Motion is All You Need")
 		self.geometry(f"{App.WIDTH}x{App.HEIGHT}")
