@@ -315,8 +315,15 @@ class CapturePage(customtkinter.CTkFrame):
 												text="Exit",
 												command=self.exit_capture,
 												fg_color="#D35B58", 
-												hover_color="#C77C78")
+												hover_color="#C77C78",
+												width=62)
 		self.exit.grid(row=11, column=0, pady=20, padx=20, sticky="w")
+
+		self.reset = customtkinter.CTkButton(master=self.frame_left,
+												text="Reset",
+												command=self.reset_capture,
+												width=62)
+		self.reset.grid(row=11, column=0, pady=20, padx=20, sticky="e")
 
 		# # ============ frame_right ============
 		# # configure grid layout (3x7)
@@ -384,22 +391,22 @@ class CapturePage(customtkinter.CTkFrame):
 													 text="Key: ",
 													 width=10,
 													 justify=tk.RIGHT)
-		self.text.grid(row=4, column=0)
+		self.text.grid(row=4, column=0, sticky="e")
 
 		self.key_entry = customtkinter.CTkEntry(master=self.frame_right,
 													 text="Enter Key")
-		self.key_entry.grid(row=4, column=1, pady=10, padx=20, sticky="w")
+		self.key_entry.grid(row=4, column=1, pady=10, sticky="w")
 
 		self.save_button = customtkinter.CTkButton(master=self.frame_right,
 													 text="Save",
 													 command=self.save_key,
 													 width=20
 													 )
-		self.save_button.grid(row=4, column=2, pady=10, padx=0, sticky="e")
+		self.save_button.grid(row=4, column=1, pady=10, padx=0, sticky="e")
 
 		self.stored_keys_text = customtkinter.CTkLabel(master=self.frame_right,
 													 text=self.stored_hand_keys,
-													 justify=tk.LEFT)
+													 justify=tk.CENTER)
 		self.stored_keys_text.grid(row=4, column=3)
 		
 		self.run_button = customtkinter.CTkButton(master=self.frame_right,
@@ -440,9 +447,7 @@ class CapturePage(customtkinter.CTkFrame):
 			self.key_entry.delete(0, tk.END)
 			
 			# TODO: Put in a function, Update the text
-			self.stored_keys_text = customtkinter.CTkLabel(master=self.frame_right,
-														text="Registered Keys " + str(list(self.stored_hand_keys.keys())),
-														justify=tk.LEFT)
+			self.stored_keys_text.configure(text="Registered Keys " + str(list(self.stored_hand_keys.keys())))
 			self.stored_keys_text.grid(row=4, column=3)
 
 		else:
@@ -516,6 +521,10 @@ class CapturePage(customtkinter.CTkFrame):
 		
 	def change_appearance_mode(self, new_appearance_mode):
 		customtkinter.set_appearance_mode(new_appearance_mode)
+
+	def reset_capture(self):
+		self.stored_hand_keys = {}
+		self.stored_keys_text.configure(text=str(self.stored_hand_keys))
 
 	def exit_capture(self):
 		self.update_username = True
