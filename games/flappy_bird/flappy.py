@@ -4,6 +4,7 @@ import sys
 import pygame
 import json
 from pygame.locals import *
+import bisect
 
 sys.path.append("../../")
 
@@ -14,6 +15,7 @@ PIPEGAPSIZE  = 200 # gap between upper and lower part of pipe
 BASEY = SCREENHEIGHT * 0.79
 # image, sound and hitmask  dicts
 IMAGES, SOUNDS, HITMASKS = {}, {}, {}
+FONTS = {}
 
 # list of all possible players (tuple of 3 positions of flap)
 PLAYERS_LIST = (
@@ -57,10 +59,13 @@ except NameError:
 
 
 def main():
+    username = sys.argv[1] if len(sys.argv) > 1 else "local"
+
     global SCREEN, FPSCLOCK
     pygame.init()
     FPSCLOCK = pygame.time.Clock()
     SCREEN = pygame.display.set_mode((SCREENWIDTH, SCREENHEIGHT))
+    FONTS['font'] = pygame.font.SysFont('Arial', 12)
     pygame.display.set_caption('Flappy Bird')
 
     # numbers sprites for score display
@@ -131,8 +136,46 @@ def main():
 
         movementInfo = showWelcomeAnimation()
         crashInfo = mainGame(movementInfo)
-        showGameOverScreen(crashInfo)
         
+        score = crashInfo["score"]
+        with open("bird_scores.json", "a+") as infile1:
+            infile1.seek(0)
+            try:
+                scores = json.load(infile1)
+            except Exception as e:
+                print("Error loading scores: " + str(e))
+                scores={}
+        if (username not in scores.keys()):
+            scores[username] = []
+            # user scores are in ascending order
+        bisect.insort(scores[username], score)
+        
+        top_n = 3
+        top_personal = scores[username][-top_n:]
+        # highest scores is an array of (username, score) pairs
+        with open("bird_top_scores.json", "a+") as infile2:
+            infile2.seek(0)
+            try:
+                top_scores = json.load(infile2)
+            except Exception as e:
+                print("Error loading highest scores: " + str(e))
+                top_scores=[]
+
+        i = len(top_scores) - 1
+        while (i >= 0):
+            if (score < top_scores[i][1]):
+                break;
+            i -= 1
+        
+        top_n = 5
+        if (i + 1 < top_n):
+            top_scores.insert(i + 1, [username, score])
+
+        with open("bird_scores.json", "w") as outfile1, open("bird_top_scores.json", "w") as outfile2:
+            json.dump(scores, outfile1)
+            json.dump(top_scores, outfile2)
+            
+        showGameOverScreen(crashInfo, top_personal, top_scores)
 
 
 def showWelcomeAnimation():
@@ -322,7 +365,9 @@ def mainGame(movementInfo):
         FPSCLOCK.tick(FPS)
 
 
-def showGameOverScreen(crashInfo):
+def showGameOverScreen(crashInfo, top_personal, top_scores):
+    print(top_personal)
+    print(top_scores)
     """crashes the player down and shows gameover image"""
     score = crashInfo['score']
     playerx = SCREENWIDTH * 0.2
@@ -380,6 +425,8 @@ def showGameOverScreen(crashInfo):
         playerSurface = pygame.transform.rotate(IMAGES['player'][1], playerRot)
         SCREEN.blit(playerSurface, (playerx,playery))
         SCREEN.blit(IMAGES['gameover'], (50, 180))
+        SCREEN.blit(FONTS['font'].render(str(top_personal), True, (255,255,255)), (10, 100))
+        SCREEN.blit(FONTS['font'].render(str(top_scores), True, (255,255,255)), (10, 120))
 
         FPSCLOCK.tick(FPS)
         pygame.display.update()
