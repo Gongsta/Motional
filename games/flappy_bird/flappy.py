@@ -15,7 +15,7 @@ PIPEGAPSIZE  = 200 # gap between upper and lower part of pipe
 BASEY = SCREENHEIGHT * 0.79
 # image, sound and hitmask  dicts
 IMAGES, SOUNDS, HITMASKS = {}, {}, {}
-FONTS = {}
+# FONTS = {}
 
 # list of all possible players (tuple of 3 positions of flap)
 PLAYERS_LIST = (
@@ -65,7 +65,7 @@ def main():
     pygame.init()
     FPSCLOCK = pygame.time.Clock()
     SCREEN = pygame.display.set_mode((SCREENWIDTH, SCREENHEIGHT))
-    FONTS['font'] = pygame.font.SysFont('Arial', 12)
+    # FONTS['font'] = pygame.font.SysFont('Arial', 12)
     pygame.display.set_caption('Flappy Bird')
 
     # numbers sprites for score display
@@ -425,8 +425,8 @@ def showGameOverScreen(crashInfo, top_personal, top_scores):
         playerSurface = pygame.transform.rotate(IMAGES['player'][1], playerRot)
         SCREEN.blit(playerSurface, (playerx,playery))
         SCREEN.blit(IMAGES['gameover'], (50, 180))
-        SCREEN.blit(FONTS['font'].render(str(top_personal), True, (255,255,255)), (10, 100))
-        SCREEN.blit(FONTS['font'].render(str(top_scores), True, (255,255,255)), (10, 120))
+        # SCREEN.blit(FONTS['font'].render(str(top_personal), True, (255,255,255)), (10, 100))
+        # SCREEN.blit(FONTS['font'].render(str(top_scores), True, (255,255,255)), (10, 120))
 
         FPSCLOCK.tick(FPS)
         pygame.display.update()
