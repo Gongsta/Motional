@@ -13,6 +13,7 @@ Layout:
 Pitch:
 - The mouth playing is also a way to gamify practice. Certain people with disabilities need to practice exercising certain muscles such as their mouths. So this is a really good way to get people to practice.
 
+Icons used are from [Material Design by Google](https://fonts.google.com/icons).
 
 TODO:
 - Add jumping with pose

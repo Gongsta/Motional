@@ -3,6 +3,7 @@ import json
 import subprocess
 from math import fabs
 import tkinter as tk
+from turtle import color
 import customtkinter
 import cv2
 import mediapipe as mp
@@ -15,10 +16,16 @@ import random
 import string
 import json
 
-customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
+customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
 users = {}
+
+PATH = os.path.dirname(os.path.realpath(__file__))
+
+
+BUTTON_COLOR = "#fedd03"
+BUTTON_COLOR_HOVER = "#ffc800"
 
 # class User():
 # 	def __init__(self, username, password):
@@ -71,6 +78,7 @@ class App(customtkinter.CTk):
 	def show_page(self, cont):
 		frame = self.frames[cont]
 		frame.tkraise()
+
 
 	def on_closing(self, event=0):
 		with open("users.json", "w") as outfile:
@@ -231,6 +239,10 @@ class CapturePage(customtkinter.CTkFrame):
 			min_tracking_confidence=0.5)
 
 
+		self.hand_image = self.load_image("/assets/hand.png", 30)
+		self.face_image = self.load_image("/assets/face.png", 30)
+		self.body_image = self.load_image("/assets/body.png", 30)
+
 		self.current_pose = "hand" # Can be "face" or "body"
 
 		self.stored_hand_keys = {}
@@ -258,7 +270,7 @@ class CapturePage(customtkinter.CTkFrame):
 		self.frame_left.grid(row=0, column=0, sticky="nswe")
 
 		self.frame_right = customtkinter.CTkFrame(master=self)
-		self.frame_right.grid(row=0, column=1, sticky="nswe", padx=20, pady=20)
+		self.frame_right.grid(row=0, column=1, sticky="nwe", padx=20, pady=20)
 
 		# ============ frame_left ============
 		# configure grid layout (1x11)
@@ -304,10 +316,10 @@ class CapturePage(customtkinter.CTkFrame):
 
 		# # ============ frame_right ============
 		# # configure grid layout (3x7)
-		self.frame_right.rowconfigure((0, 1, 2), weight=1)
+		self.frame_right.rowconfigure((0), weight=2)
 		self.frame_right.columnconfigure((0, 1), weight=1)
 		self.frame_info = customtkinter.CTkFrame(master=self.frame_right, width=1000)
-		self.frame_info.grid(row=0, column=0, columnspan=8, rowspan=4, pady=20, padx=20, sticky="nsew")
+		self.frame_info.grid(row=0, column=0, columnspan=8, rowspan=2, pady=0, padx=0)
 
 		# ============ frame_info ============
 
@@ -320,10 +332,48 @@ class CapturePage(customtkinter.CTkFrame):
 		self.label_info_1 = customtkinter.CTkLabel(master=self.frame_info,
 												   height=540,
 												   width=960,
-												   corner_radius=6,  # <- custom corner radius
 												   )
-		self.label_info_1.grid(column=0, row=0, padx=5, pady=10)
+		self.label_info_1.grid(column=0, row=0, padx=0, pady=0)
 
+
+		self.frame_option = customtkinter.CTkFrame(master=self.frame_right, width=1000, height=50)
+		self.frame_option.grid(row=1, column=0, columnspan=8, rowspan=1, pady=0, padx=0)
+
+		self.hand_gesture_button = customtkinter.CTkButton(master=self.frame_option,
+													text="",
+													width=50,
+													height=50,
+													fg_color=BUTTON_COLOR,
+													hover_color=BUTTON_COLOR_HOVER,
+													image=self.hand_image,
+													command=self.toggle_hand,
+													corner_radius=20,
+													)
+		self.hand_gesture_button.grid(row=0, column=0, pady=10, padx=20, sticky="e")
+		self.face_gesture_button = customtkinter.CTkButton(master=self.frame_option,
+													text="",
+													width=50,
+													height=50,
+													fg_color=BUTTON_COLOR,
+													hover_color=BUTTON_COLOR_HOVER,
+													image=self.face_image,
+													command=self.toggle_face,
+													corner_radius=20,
+													)
+
+		self.face_gesture_button.grid(row=0, column=1, pady=10, padx=20, sticky="e")
+		self.body_gesture_button = customtkinter.CTkButton(master=self.frame_option,
+													text="",
+													width=50,
+													height=50,
+													fg_color=BUTTON_COLOR,
+													hover_color=BUTTON_COLOR_HOVER,
+													image=self.body_image,
+													command=self.toggle_body,
+													corner_radius=20,
+													)
+
+		self.body_gesture_button.grid(row=0, column=2, pady=10, padx=20, sticky="e")
 
 		# # ============ frame_right ============
 		self.text = customtkinter.CTkLabel(master=self.frame_right,
@@ -339,7 +389,7 @@ class CapturePage(customtkinter.CTkFrame):
 													 text="Save",
 													 command=self.save_key
 													 )
-		self.save_button.grid(row=4, column=2, pady=10, padx=20, sticky="e")
+		self.save_button.grid(row=5, column=2, pady=10, padx=20, sticky="e")
 
 		self.stored_keys_text = customtkinter.CTkLabel(master=self.frame_right,
 													 text=self.stored_hand_keys,
@@ -355,24 +405,6 @@ class CapturePage(customtkinter.CTkFrame):
 													)
 		self.run_button.grid(row=5, column=2, pady=10, padx=20, sticky="e")
 
-		self.hand_gesture_button = customtkinter.CTkButton(master=self.frame_right,
-													text="Hand",
-													command=self.toggle_hand,
-													)
-		self.hand_gesture_button.grid(row=0, column=0, pady=10, padx=20, sticky="e")
-		self.face_gesture_button = customtkinter.CTkButton(master=self.frame_right,
-													text="Face",
-													command=self.toggle_face,
-													)
-
-		self.face_gesture_button.grid(row=0, column=1, pady=10, padx=20, sticky="e")
-		self.body_gesture_button = customtkinter.CTkButton(master=self.frame_right,
-													text="Body",
-													command=self.toggle_body,
-													)
-
-		self.body_gesture_button.grid(row=0, column=2, pady=10, padx=20, sticky="e")
-
 		# self.reset_button = customtkinter.CTkButton(master=self.frame_right,
 		# 											text="Reset",
 		# 											command=self.reset,
@@ -384,6 +416,11 @@ class CapturePage(customtkinter.CTkFrame):
 		self.optionmenu_1.set("System")
 
 		self.show_frame()
+
+
+	def load_image(self, path, image_size):
+		""" load rectangular image with path relative to PATH """
+		return ImageTk.PhotoImage(Image.open(PATH + path).resize((image_size, image_size)))
 
 	def show_frame(self):
 		if (self.update_username and current_user[0]):
