@@ -9,6 +9,7 @@ import pyautogui
 import random
 import string
 import json
+import bcrypt
 
 customtkinter.set_appearance_mode("System")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
@@ -25,7 +26,7 @@ users = {}
 # 		return json.dumps(self, default=lambda o: o.__dict__, 
 # 			sort_keys=True, indent=4)
 
-# [username, password] using array for easier (de)serialization
+# [username, password_hash] using array for easier (de)serialization
 current_user = ["", ""]
 
 class App(customtkinter.CTk):
@@ -36,8 +37,11 @@ class App(customtkinter.CTk):
 		super().__init__()
 
 		with open("users.json") as infile:
-			global users
-			users = json.load(infile)
+			try:
+				global users
+				users = json.load(infile)
+			except Exception as e:
+				print("Error loading users")
 
 		self.title("Motional: Motion is All You Need")
 		self.geometry(f"{App.WIDTH}x{App.HEIGHT}")
@@ -128,13 +132,16 @@ class LoginPage(customtkinter.CTkFrame):
 	def login(self):
 		username = self.username_entry.get()
 		password = self.password_entry.get()
+		print(users)
+		print(bcrypt.hashpw("a", bcrypt.gensalt( 12 )))
 
-		if (username not in users.keys() or users[username][1] != password):
+		if (username not in users.keys() or not bcrypt.checkpw(password, users[username][1])):
 			self.sign_up_info.configure(text="Sorry, wrong username/password.", fg="red")
 		else:
 			global current_user
 			current_user = users[username]
 			self.controller.show_page(CapturePage)
+			self.sign_up_info.configure(text="or", fg="white")
 
 	def sign_up(self):
 		username = self.username_entry.get()
@@ -145,10 +152,11 @@ class LoginPage(customtkinter.CTkFrame):
 		elif (username in users.keys()):
 			self.sign_up_info.configure(text="Sorry, this username is already taken. Please try a different one.", fg="red")
 		else:
-			users[username] = [username, password]
+			users[username] = [username, bcrypt.hashpw(password, bcrypt.gensalt())]
 			global current_user
 			current_user = users[username]
 			self.controller.show_page(CapturePage)
+			self.sign_up_info.configure(text="or", fg="white")
 
 	def guest_login(self):
 		suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
@@ -159,10 +167,11 @@ class LoginPage(customtkinter.CTkFrame):
 			suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
 			username = "Guest#" + suffix
 		
-		users[username] =[username, password]
+		users[username] =[username, bcrypt.hashpw(password, bcrypt.gensalt())]
 		global current_user
 		current_user = users[username]
 		self.controller.show_page(CapturePage)
+		self.sign_up_info.configure(text="or", fg="white")
 
 # class UsernamePage(customtkinter.CTkFrame):
 # 	def __init__(self, parent, controller):
