@@ -6,13 +6,18 @@ For this project, whenever we want to capture a new hand pose, this is the proce
 display a loading bar
 3. 
 
+Layout:
+- Right side for our own gui, left side for playing the game.
+
 
 Pitch:
 - The mouth playing is also a way to gamify practice. Certain people with disabilities need to practice exercising certain muscles such as their mouths. So this is a really good way to get people to practice.
 
+Icons used are from [Material Design by Google](https://fonts.google.com/icons).
 
 TODO:
 - Add jumping with pose
+- Add crouching, because that didn't work super well
 
 Ideas:
 - Store Configuration for gesture -> control mapping

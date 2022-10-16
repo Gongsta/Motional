@@ -5,9 +5,6 @@ from matplotlib.animation import FuncAnimation
 
 import pyautogui
 
-mp_drawing = mp.solutions.drawing_utils
-mp_drawing_styles = mp.solutions.drawing_styles
-mp_pose = mp.solutions.pose
 
 def store_reference_position(pose, image):
 	# To improve performance, optionally mark the image as not writeable to
@@ -43,6 +40,8 @@ def check_crouch(landmarks, reference):
 	it can detect a jump.
 	
 	Define height of jump as 1/5 of the width of the shoulders.
+	
+	This doesn't work super well.
 	"""
 	vertical_threshold = 0.2 # If there is a vertical increase by 0.1m, then we consider this a jump
 	dist_ref = compute_distance(reference[12], reference[11])
@@ -51,10 +50,8 @@ def check_crouch(landmarks, reference):
 	dist = (landmarks[11].y - reference[11].y)
 
 	return dist < vertical_threshold * dist_ref
-	
 
-
-def process_image_body_detection(pose, image, stored_keys, key=None, mp_hands=mp.solutions.hands, mp_drawing=mp.solutions.drawing_utils, mp_drawing_styles=mp.solutions.drawing_styles):
+def process_image_body_detection(pose, image, stored_keys, reference_landmark, key=None, mp_pose=mp.solutions.pose, mp_drawing=mp.solutions.drawing_utils, mp_drawing_styles=mp.solutions.drawing_styles):
 	# To improve performance, optionally mark the image as not writeable to
 	# pass by reference.
 	image.flags.writeable = False
@@ -72,6 +69,9 @@ def process_image_body_detection(pose, image, stored_keys, key=None, mp_hands=mp
 			store_new_pose(results.pose_landmarks.landmark, key, stored_keys)
 			print(stored_keys)
 
+		if reference_landmark and check_jump(reference_landmark, results.pose_landmarks.landmark):
+			print("jump detected")
+			pyautogui.press(" ")
 
 		# plot_realtime(results.pose_landmarks.landmark) # TODO: Add graph visualization if you have time
 		text = search_body_pose(results.pose_landmarks.landmark, stored_keys)
@@ -103,6 +103,11 @@ def capture_initial_position(image, counter):
 	return image
 
 if __name__ == "__main__":
+
+	mp_drawing = mp.solutions.drawing_utils
+	mp_drawing_styles = mp.solutions.drawing_styles
+	mp_pose = mp.solutions.pose
+
 	stored_keys = {}
 	# For webcam input:
 	cap = cv2.VideoCapture(0)
@@ -124,32 +129,7 @@ if __name__ == "__main__":
 			if counter == 0 and not reference_landmark:
 				reference_landmark = store_reference_position(pose, image)
 
-				
-			if reference_landmark:
-				image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-				results = pose.process(image)
-				image.flags.writeable = True
-				image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-				
-				if check_jump(reference_landmark, results.pose_landmarks.landmark):
-					pyautogui.press(" ")
-				# This makes the code very slow
-				# if check_jump(reference_landmark, results.pose_landmarks.landmark):
-				# 	pyautogui.keyDown(" ")
-				# else:
-				# 	pyautogui.keyUp(" ")
-
-
-				# if check_crouch(reference_landmark, results.pose_landmarks.landmark):
-				# 	pyautogui.keyDown("down")
-				# else:
-				# 	pyautogui.keyUp("down")
-
-			image = process_image_body_detection(pose, image, stored_keys)
-			# if cv2.waitKey(33) == ord('a'):
-			# 	image = process_image_body_detection(image, stored_keys, 'a')
-			# else:
-			# 	image = process_image_body_detection(image, stored_keys)
+			image = process_image_body_detection(pose, image, stored_keys, reference_landmark)
 
 			if (counter > 0):
 				image = capture_initial_position(image, counter)

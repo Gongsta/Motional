@@ -86,7 +86,7 @@ if __name__ == "__main__":
 				# If loading a video, use 'break' instead of 'continue'.
 				continue
 
-			if cv2.waitKey(33) == ord('a'):
+			if cv2.waitKey(33) == ord('a'): # not really used, storing the dict of keys for face
 				process_image_face_detection(face_mesh, image, stored_keys, 'a')
 			else:
 				image = process_image_face_detection(face_mesh, image, stored_keys)
