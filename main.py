@@ -85,7 +85,7 @@ class App(customtkinter.CTk):
 
 
 	def on_closing(self, event=0):
-		with open("users.json", "w") as outfile:
+		with open("users.json", "w+") as outfile:
 			json.dump(users, outfile)
 		self.destroy()
 
@@ -145,8 +145,6 @@ class LoginPage(customtkinter.CTkFrame):
 	def login(self):
 		username = self.username_entry.get()
 		password = self.password_entry.get()
-		print(users)
-		print(bcrypt.hashpw("a", bcrypt.gensalt( 12 )))
 
 		if (username not in users.keys() or not bcrypt.checkpw(password, users[username][1])):
 			self.sign_up_info.configure(text="Sorry, wrong username/password.", fg="red")
@@ -202,7 +200,7 @@ class LoginPage(customtkinter.CTkFrame):
 # 											  text="",
 # 											  height=10,
 # 											  text_font=("Roboto Medium", 8),) 
-# 		self.label_1.grid(row=2, column=0)
+# 		self.label_1.grid(row=2, column=0)f
 # 		self.button = customtkinter.CTkButton(self, text ="Submit",
 # 				command = self.submit_username)
 # 		self.button.grid(row=3, column=0, sticky="n")
@@ -505,7 +503,7 @@ class CapturePage(customtkinter.CTkFrame):
 		self.run_button.configure(**configuration)
 
 	def launch_flappy_bird(self):
-		subprocess.Popen(["cd {}/games/flappy_bird && python3 flappy.py".format(os.getcwd())], shell=True)
+		subprocess.Popen(["cd {}/games/flappy_bird && python3 flappy.py {}".format(os.getcwd(), current_user[0])], shell=True)
 	
 	def launch_pong(self):
 		subprocess.Popen(["cd {}/games/pong && python3 pong.py".format(os.getcwd())], shell=True)
