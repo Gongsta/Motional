@@ -28,10 +28,12 @@ def process_image_face_detection(face_mesh, image, stored_keys, key=None, mp_dra
 				store_new_pose(face_landmarks.landmark, key, stored_keys)
 
 			if check_mouth_open(face_landmarks.landmark):
-				print("mouth is open")
+				text = "Mouth is Open"
 				pyautogui.press(" ")
+			else:
+				text = "Mouth is Closed"
 
-			text = search_face_pose(face_landmarks.landmark, stored_keys) # TODO: Add counter if this is too slow
+			# text = search_face_pose(face_landmarks.landmark, stored_keys) # TODO: Add counter if this is too slow
 			mp_drawing.draw_landmarks(
 					image=image,
 					landmark_list=face_landmarks,
@@ -55,12 +57,25 @@ def process_image_face_detection(face_mesh, image, stored_keys, key=None, mp_dra
 					.get_default_face_mesh_iris_connections_style())
 
 		image = cv2.flip(image, 1)
-		image = cv2.putText(image, text, org, font, 
+		# get boundary of this text
+		textsize = cv2.getTextSize(text, font, fontScale, thickness)[0]
+
+		# get coords based on boundary
+		textX = (image.shape[1] - textsize[0]) // 2
+		textY = 900
+
+		image = cv2.putText(image, text, (textX, textY), font, 
 							fontScale, color, thickness, cv2.LINE_AA)
 	else:
 		image = cv2.flip(image, 1)
 		text = "No Face Detected"
-		image = cv2.putText(image, text, org, font, 
+		textsize = cv2.getTextSize(text, font, fontScale, thickness)[0]
+
+		# get coords based on boundary
+		textX = (image.shape[1] - textsize[0]) // 2
+		textY = 900
+
+		image = cv2.putText(image, text, (textX, textY), font, 
 							fontScale, color, thickness, cv2.LINE_AA)
 	
 	return image

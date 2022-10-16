@@ -16,6 +16,7 @@ import random
 import string
 import json
 
+
 customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
@@ -42,7 +43,7 @@ current_user = ["", ""]
 
 class App(customtkinter.CTk):
 	WIDTH = 930
-	HEIGHT = 580
+	HEIGHT = 600
 
 	def __init__(self):
 		super().__init__()
@@ -243,6 +244,11 @@ class CapturePage(customtkinter.CTkFrame):
 		self.face_image = self.load_image("/assets/face.png", 30)
 		self.body_image = self.load_image("/assets/body.png", 30)
 
+		self.flappy_bird_image = self.load_image("/assets/flappy.png", 50)
+		self.pong_image = self.load_image("/assets/pong.jpeg", 50)
+		self.snake_image = self.load_image("/assets/snake.png", 50)
+		self.dino_image = self.load_image("/assets/dino.png", 50)
+
 		self.current_pose = "hand" # Can be "face" or "body"
 
 		self.stored_hand_keys = {}
@@ -253,7 +259,7 @@ class CapturePage(customtkinter.CTkFrame):
 		self.storing_key = False # Will be used to check if we are storing hand keys
 		
 		self.body_reference_landmark = None
-		self.counter = 50 # Used as a countdown
+		self.counter = 100 # Used as a countdown
 		# self.resizable(False, False) # Remove the option to resize, TODO: Fix it so we can enable that
 
 		self.cap = cv2.VideoCapture(0)
@@ -265,7 +271,7 @@ class CapturePage(customtkinter.CTkFrame):
 		self.grid_rowconfigure(0, weight=1)
 
 		self.frame_left = customtkinter.CTkFrame(master=self,
-												 width=150,
+												 width=100,
 												 corner_radius=0)
 		self.frame_left.grid(row=0, column=0, sticky="nswe")
 
@@ -284,20 +290,39 @@ class CapturePage(customtkinter.CTkFrame):
 											  text_font=("Roboto Medium", -16))  # font name and size in px
 		self.label_1.grid(row=1, column=0, pady=10, padx=10)
 
-		self.button_1 = customtkinter.CTkButton(master=self.frame_left,
-												text="Flappy Bird",
-												command=self.launch_flappy_bird)
-		self.button_1.grid(row=2, column=0, pady=10, padx=20)
+		self.flappy_bird_button = customtkinter.CTkButton(master=self.frame_left,
+													text="",
+													width=50,
+													height=50,
+													image=self.flappy_bird_image,
+													command=self.launch_flappy_bird,
+													corner_radius=20)
+		self.flappy_bird_button.grid(row=2, column=0, pady=10, padx=20)
 
-		self.button_2 = customtkinter.CTkButton(master=self.frame_left,
-												text="Pong",
-												command=self.launch_pong)
-		self.button_2.grid(row=3, column=0, pady=10, padx=20)
+		self.snake_button = customtkinter.CTkButton(master=self.frame_left,
+													text="",
+													width=50,
+													height=50,
+													image=self.snake_image,
+													command=self.launch_snake,
+													corner_radius=20)
+		self.snake_button.grid(row=3, column=0, pady=10, padx=20)
+		
+		# TODO: Add Dino
 
-		self.button_3 = customtkinter.CTkButton(master=self.frame_left,
-												text="Custom",
-												command=self.button_event)
-		self.button_3.grid(row=4, column=0, pady=10, padx=20)
+		# self.pong_button = customtkinter.CTkButton(master=self.frame_left,
+		# 											text="",
+		# 											width=50,
+		# 											height=50,
+		# 											image=self.pong_image,
+		# 											command=self.launch_pong,
+		# 											corner_radius=20)
+		# self.pong_button.grid(row=3, column=0, pady=10, padx=20)
+
+		# self.button_3 = customtkinter.CTkButton(master=self.frame_left,
+		# 										text="Custom",
+		# 										command=self.button_event)
+		# self.button_3.grid(row=4, column=0, pady=10, padx=20)
 
 		self.label_mode = customtkinter.CTkLabel(master=self.frame_left, text="Appearance Mode:")
 		self.label_mode.grid(row=9, column=0, pady=0, padx=20, sticky="w")
@@ -312,14 +337,14 @@ class CapturePage(customtkinter.CTkFrame):
 												command=self.exit_capture,
 												fg_color="#D35B58", 
 												hover_color="#C77C78")
-		self.exit.grid(row=11, column=0, pady=10, padx=20, sticky="w")
+		self.exit.grid(row=11, column=0, pady=20, padx=20, sticky="w")
 
 		# # ============ frame_right ============
 		# # configure grid layout (3x7)
 		self.frame_right.rowconfigure((0), weight=2)
 		self.frame_right.columnconfigure((0, 1), weight=1)
 		self.frame_info = customtkinter.CTkFrame(master=self.frame_right, width=1000)
-		self.frame_info.grid(row=0, column=0, columnspan=8, rowspan=2, pady=0, padx=0)
+		self.frame_info.grid(row=0, column=0, columnspan=5, rowspan=2, pady=0, padx=0)
 
 		# ============ frame_info ============
 
@@ -337,7 +362,7 @@ class CapturePage(customtkinter.CTkFrame):
 
 
 		self.frame_option = customtkinter.CTkFrame(master=self.frame_right, width=1000, height=50)
-		self.frame_option.grid(row=1, column=0, columnspan=8, rowspan=1, pady=0, padx=0)
+		self.frame_option.grid(row=1, column=0, columnspan=5, rowspan=1, pady=0, padx=0)
 
 		self.hand_gesture_button = customtkinter.CTkButton(master=self.frame_option,
 													text="",
@@ -378,7 +403,8 @@ class CapturePage(customtkinter.CTkFrame):
 		# # ============ frame_right ============
 		self.text = customtkinter.CTkLabel(master=self.frame_right,
 													 text="Key: ",
-													 justify=tk.LEFT)
+													 width=10,
+													 justify=tk.RIGHT)
 		self.text.grid(row=4, column=0)
 
 		self.key_entry = customtkinter.CTkEntry(master=self.frame_right,
@@ -387,14 +413,15 @@ class CapturePage(customtkinter.CTkFrame):
 
 		self.save_button = customtkinter.CTkButton(master=self.frame_right,
 													 text="Save",
-													 command=self.save_key
+													 command=self.save_key,
+													 width=20
 													 )
-		self.save_button.grid(row=5, column=2, pady=10, padx=20, sticky="e")
+		self.save_button.grid(row=4, column=2, pady=10, padx=0, sticky="e")
 
 		self.stored_keys_text = customtkinter.CTkLabel(master=self.frame_right,
 													 text=self.stored_hand_keys,
 													 justify=tk.LEFT)
-		self.stored_keys_text.grid(row=5, column=0)
+		self.stored_keys_text.grid(row=4, column=3)
 		
 		self.run_button = customtkinter.CTkButton(master=self.frame_right,
 													text="Run Gesture-Keyboard Control",
@@ -403,7 +430,7 @@ class CapturePage(customtkinter.CTkFrame):
 													fg_color="#58d35a", 
 													hover_color="#78c779"
 													)
-		self.run_button.grid(row=5, column=2, pady=10, padx=20, sticky="e")
+		self.run_button.grid(row=4, column=4, pady=10, padx=20, sticky="e")
 
 		# self.reset_button = customtkinter.CTkButton(master=self.frame_right,
 		# 											text="Reset",
@@ -413,7 +440,7 @@ class CapturePage(customtkinter.CTkFrame):
 		# self.reset_button.grid(row=0, column=2, pady=10, padx=20, sticky="e")
 
 		# set default values
-		self.optionmenu_1.set("System")
+		self.optionmenu_1.set("Dark")
 
 		self.show_frame()
 
@@ -437,7 +464,7 @@ class CapturePage(customtkinter.CTkFrame):
 			self.stored_keys_text = customtkinter.CTkLabel(master=self.frame_right,
 														text="Registered Keys " + str(list(self.stored_hand_keys.keys())),
 														justify=tk.LEFT)
-			self.stored_keys_text.grid(row=5, column=0)
+			self.stored_keys_text.grid(row=4, column=3)
 
 		else:
 			if self.current_pose == "hand":
@@ -458,8 +485,6 @@ class CapturePage(customtkinter.CTkFrame):
 			if (self.counter > 0):
 				image = capture_initial_position(image, self.counter)
 				self.counter -= 1
-
-
 
 		image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 		image = cv2.resize(image, (640, 360))
@@ -500,6 +525,9 @@ class CapturePage(customtkinter.CTkFrame):
 	
 	def launch_pong(self):
 		subprocess.Popen(["cd {}/games/pong && python3 pong.py".format(os.getcwd())], shell=True)
+
+	def launch_snake(self):
+		subprocess.Popen(["cd {}/games/snake && python3 snake.py".format(os.getcwd())], shell=True)
 
 	def button_event(self):
 		print("Button pressed")
