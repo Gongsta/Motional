@@ -15,6 +15,7 @@ import pyautogui
 import random
 import string
 import json
+import bcrypt
 
 
 customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
@@ -38,7 +39,7 @@ BUTTON_COLOR_HOVER = "#ffc800"
 # 		return json.dumps(self, default=lambda o: o.__dict__, 
 # 			sort_keys=True, indent=4)
 
-# [username, password] using array for easier (de)serialization
+# [username, password_hash] using array for easier (de)serialization
 current_user = ["", ""]
 
 class App(customtkinter.CTk):
@@ -49,8 +50,11 @@ class App(customtkinter.CTk):
 		super().__init__()
 
 		with open("users.json") as infile:
-			global users
-			users = json.load(infile)
+			try:
+				global users
+				users = json.load(infile)
+			except Exception as e:
+				print("Error loading users")
 
 		self.title("Motional: Motion is All You Need")
 		self.geometry(f"{App.WIDTH}x{App.HEIGHT}")
@@ -82,7 +86,7 @@ class App(customtkinter.CTk):
 
 
 	def on_closing(self, event=0):
-		with open("users.json", "w") as outfile:
+		with open("users.json", "w+") as outfile:
 			json.dump(users, outfile)
 		self.destroy()
 
@@ -143,12 +147,13 @@ class LoginPage(customtkinter.CTkFrame):
 		username = self.username_entry.get()
 		password = self.password_entry.get()
 
-		if (username not in users.keys() or users[username][1] != password):
+		if (username not in users.keys() or not bcrypt.checkpw(password, users[username][1])):
 			self.sign_up_info.configure(text="Sorry, wrong username/password.", fg="red")
 		else:
 			global current_user
 			current_user = users[username]
 			self.controller.show_page(CapturePage)
+			self.sign_up_info.configure(text="or", fg="white")
 
 	def sign_up(self):
 		username = self.username_entry.get()
@@ -159,10 +164,11 @@ class LoginPage(customtkinter.CTkFrame):
 		elif (username in users.keys()):
 			self.sign_up_info.configure(text="Sorry, this username is already taken. Please try a different one.", fg="red")
 		else:
-			users[username] = [username, password]
+			users[username] = [username, bcrypt.hashpw(password, bcrypt.gensalt())]
 			global current_user
 			current_user = users[username]
 			self.controller.show_page(CapturePage)
+			self.sign_up_info.configure(text="or", fg="white")
 
 	def guest_login(self):
 		suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
@@ -173,10 +179,11 @@ class LoginPage(customtkinter.CTkFrame):
 			suffix = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
 			username = "Guest#" + suffix
 		
-		users[username] =[username, password]
+		users[username] =[username, bcrypt.hashpw(password, bcrypt.gensalt())]
 		global current_user
 		current_user = users[username]
 		self.controller.show_page(CapturePage)
+		self.sign_up_info.configure(text="or", fg="white")
 
 # class UsernamePage(customtkinter.CTkFrame):
 # 	def __init__(self, parent, controller):
@@ -194,7 +201,7 @@ class LoginPage(customtkinter.CTkFrame):
 # 											  text="",
 # 											  height=10,
 # 											  text_font=("Roboto Medium", 8),) 
-# 		self.label_1.grid(row=2, column=0)
+# 		self.label_1.grid(row=2, column=0)f
 # 		self.button = customtkinter.CTkButton(self, text ="Submit",
 # 				command = self.submit_username)
 # 		self.button.grid(row=3, column=0, sticky="n")
@@ -521,7 +528,7 @@ class CapturePage(customtkinter.CTkFrame):
 		self.run_button.configure(**configuration)
 
 	def launch_flappy_bird(self):
-		subprocess.Popen(["cd {}/games/flappy_bird && python3 flappy.py".format(os.getcwd())], shell=True)
+		subprocess.Popen(["cd {}/games/flappy_bird && python3 flappy.py {}".format(os.getcwd(), current_user[0])], shell=True)
 	
 	def launch_pong(self):
 		subprocess.Popen(["cd {}/games/pong && python3 pong.py".format(os.getcwd())], shell=True)
