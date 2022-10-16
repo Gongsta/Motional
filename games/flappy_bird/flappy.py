@@ -143,7 +143,6 @@ def main():
             try:
                 scores = json.load(infile1)
             except Exception as e:
-                print("Error loading scores: " + str(e))
                 scores={}
         if (username not in scores.keys()):
             scores[username] = []
@@ -158,7 +157,6 @@ def main():
             try:
                 top_scores = json.load(infile2)
             except Exception as e:
-                print("Error loading highest scores: " + str(e))
                 top_scores=[]
 
         i = len(top_scores) - 1
@@ -170,6 +168,7 @@ def main():
         top_n = 5
         if (i + 1 < top_n):
             top_scores.insert(i + 1, [username, score])
+            top_scores = top_scores[0:top_n]
 
         with open("bird_scores.json", "w") as outfile1, open("bird_top_scores.json", "w") as outfile2:
             json.dump(scores, outfile1)
@@ -366,8 +365,8 @@ def mainGame(movementInfo):
 
 
 def showGameOverScreen(crashInfo, top_personal, top_scores):
-    print(top_personal)
-    print(top_scores)
+    print("top 3 personal scores: " + str(top_personal))
+    print("top 5 scores all time: " + str(top_scores))
     """crashes the player down and shows gameover image"""
     score = crashInfo['score']
     playerx = SCREENWIDTH * 0.2
