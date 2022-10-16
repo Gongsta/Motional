@@ -250,7 +250,7 @@ class CapturePage(customtkinter.CTkFrame):
 		# ============ frame_left ============
 		# configure grid layout (1x11)
 		self.frame_left.grid_rowconfigure(0, minsize=10)   # empty row with minsize as spacing
-		self.frame_left.grid_rowconfigure(5, weight=1)  # empty row as spacing
+		self.frame_left.grid_rowconfigure(6, weight=1)  # empty row as spacing
 		self.frame_left.grid_rowconfigure(8, minsize=20)    # empty row with minsize as spacing
 		self.frame_left.grid_rowconfigure(11, minsize=10)  # empty row with minsize as spacing
 
