@@ -10,6 +10,7 @@ customtkinter==4.6.3
 cycler==0.11.0
 darkdetect==0.7.1
 Django==4.1.2
+dnspython==2.2.1
 fonttools==4.37.4
 google-api-core==2.10.2
 google-api-python-client==2.64.0
@@ -36,6 +37,7 @@ pyasn1-modules==0.2.8
 PyAutoGUI==0.9.53
 pygame==2.1.2
 PyGetWindow==0.0.9
+pymongo==4.2.0
 PyMsgBox==1.0.9
 pyobjc==8.5.1
 pyobjc-core==8.5.1

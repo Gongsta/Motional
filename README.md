@@ -1,29 +1,11 @@
-# HackTheValley-7
-For this project, whenever we want to capture a new hand pose, this is the process: (NOT NEEDED, relative distance is enough)
-1. Capture a sequence of 50 landmarks (5 seconds, the capture happens around 10FPS) with the label true of the pose 
-	- There should be a countdown for this from a GUI perspective (NOT NEEDED)
-2. Train a Neural Network to learn these landmarks in the background, and
-display a loading bar
-3. 
+# Motional: HackTheValley-7
+Motional is a project that was worked on at [HackTheValley](https://hackthevalley.io/). Using state-of-the-art machine learning models, Motional can detect over 500 features on the human body (468 facial features, 21 hand features, and 33 body features) and use these features as control inputs to any video game using PyAutoGUI.
 
-Layout:
-- Right side for our own gui, left side for playing the game.
+Motional operates in 3 modes: using hand gestures, face gestures, or full-body gestures. We ship certain games out-of-the-box such as Flappy Bird and Snake, with predefined gesture-to-key mappings, so you can play the game directly with the click of a button. For many of these games, jumping in real-life (body gesture) /opening the mouth (face gesture) will be mapped to pressing the "space-bar"/"up" button.
 
-
-Pitch:
-- The mouth playing is also a way to gamify practice. Certain people with disabilities need to practice exercising certain muscles such as their mouths. So this is a really good way to get people to practice.
+However, the true power of Motional comes with customization. Every simple possible pose can be trained and clustered to provide a custom command. Motional will also play a role in creating a more inclusive gaming space for people with accessibility needs, who might not physically be able to operate a keyboard dexterously.
 
 Icons used are from [Material Design by Google](https://fonts.google.com/icons).
-
-TODO:
-- Add jumping with pose
-- Add crouching, because that didn't work super well
-
-Ideas:
-- Store Configuration for gesture -> control mapping
-	- Display gesture -> control mapping in case people forget what configuration they had
-- Add finger gesture recognition, so detecting sequences of motion (this is HARD, but super interesting!)
-- Add up to 4 person multiplayer, by splitting the camera feed into 4 quadrants
 
 ### Getting Started
 These instructions are Macbook specific.
@@ -40,5 +22,4 @@ pip install -r requirements.txt
 You might also need to install additional packages, such as Tkinter.
 ```bash
 brew install python-tk
-
 ```

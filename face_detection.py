@@ -4,7 +4,6 @@ from helper import *
 import pyautogui
 
 def check_mouth_open(landmarks):
-	print("checking")
 	return (landmarks[14].y - landmarks[13].y) > 0.05
 
 
