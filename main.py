@@ -226,7 +226,8 @@ class CapturePage(customtkinter.CTkFrame):
 		self.storing_key = False # Will be used to check if we are storing hand keys
 		
 		self.body_reference_landmark = None
-		self.counter = 100 # Used as a countdown
+		self.counter = 50 # Used as a countdown
+		self.counter2 = [0]
 		# self.resizable(False, False) # Remove the option to resize, TODO: Fix it so we can enable that
 
 		self.cap = cv2.VideoCapture(0)
@@ -446,6 +447,9 @@ class CapturePage(customtkinter.CTkFrame):
 			self.stored_keys_text.grid(row=4, column=3)
 
 		else:
+			if self.counter2[0] != 0:
+				self.counter2[0] += 1
+			self.counter2[0] %= 10
 			if self.current_pose == "hand":
 				image, key = process_image_hand_detection(self.hands, image, self.stored_hand_keys)
 				if key and self.running_gesture_keyboard_control:
@@ -455,7 +459,7 @@ class CapturePage(customtkinter.CTkFrame):
 			elif self.current_pose == "face":
 				image = process_image_face_detection(self.face_mesh, image, self.stored_face_keys)
 			elif self.current_pose == "body":
-				image = process_image_body_detection(self.pose, image, self.stored_body_keys, self.body_reference_landmark)
+				image = process_image_body_detection(self.pose, image, self.stored_body_keys, self.body_reference_landmark, counter=self.counter2)
 		
 		if self.current_pose == "body": 
 			if self.counter == 0 and not self.body_reference_landmark:

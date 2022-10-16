@@ -19,7 +19,7 @@ def store_reference_position(pose, image):
 
 	return reference_landmark
 
-def check_jump(landmarks, reference):
+def check_jump(landmarks, reference): # this is inverted but it works??
 	"""
 	# We first apply a scaling factor, by checking the distance between the the shoulders, so
 	it can detect a jump.
@@ -34,7 +34,37 @@ def check_jump(landmarks, reference):
 
 	return dist > vertical_threshold * dist_ref
 
-def check_crouch(landmarks, reference):
+def check_right(reference, landmarks):
+	"""
+	# We first apply a scaling factor, by checking the distance between the the shoulders, so
+	it can detect a jump.
+	
+	Define height of jump as 1/5 of the width of the shoulders.
+	"""
+	vertical_threshold = 0.2 # If there is a vertical increase by 0.1m, then we consider this a jump
+	# dist_ref = compute_distance(reference[12], reference[11])
+	
+	dist = abs(landmarks[16].y - landmarks[12].y)
+
+	# return dist > vertical_threshold * dist_ref
+	return dist < vertical_threshold
+
+def check_left(reference, landmarks):
+	"""
+	# We first apply a scaling factor, by checking the distance between the the shoulders, so
+	it can detect a jump.
+	
+	Define height of jump as 1/5 of the width of the shoulders.
+	"""
+	vertical_threshold = 0.2 # If there is a vertical increase by 0.1m, then we consider this a jump
+	# dist_ref = compute_distance(reference[12], reference[11])
+	
+	dist = abs(landmarks[11].y - landmarks[15].y)
+
+	# return dist > vertical_threshold * dist_ref
+	return dist < vertical_threshold
+
+def check_crouch(reference, landmarks):
 	"""
 	# We first apply a scaling factor, by checking the distance between the the shoulders, so
 	it can detect a jump.
@@ -43,15 +73,15 @@ def check_crouch(landmarks, reference):
 	
 	This doesn't work super well.
 	"""
-	vertical_threshold = 0.2 # If there is a vertical increase by 0.1m, then we consider this a jump
+	vertical_threshold = 0.5 # If there is a vertical increase by 0.1m, then we consider this a jump
 	dist_ref = compute_distance(reference[12], reference[11])
 	dist_landmarks = compute_distance(landmarks[12], landmarks[11])
 	
-	dist = (landmarks[11].y - reference[11].y)
+	dist = abs(landmarks[11].y - reference[11].y)
 
-	return dist < vertical_threshold * dist_ref
+	return dist > vertical_threshold * dist_ref
 
-def process_image_body_detection(pose, image, stored_keys, reference_landmark, key=None, mp_pose=mp.solutions.pose, mp_drawing=mp.solutions.drawing_utils, mp_drawing_styles=mp.solutions.drawing_styles):
+def process_image_body_detection(pose, image, stored_keys, reference_landmark, key=None, mp_pose=mp.solutions.pose, mp_drawing=mp.solutions.drawing_utils, mp_drawing_styles=mp.solutions.drawing_styles, counter=[0]):
 	# To improve performance, optionally mark the image as not writeable to
 	# pass by reference.
 	image.flags.writeable = False
@@ -71,7 +101,24 @@ def process_image_body_detection(pose, image, stored_keys, reference_landmark, k
 
 		if reference_landmark and check_jump(reference_landmark, results.pose_landmarks.landmark):
 			print("jump detected")
-			pyautogui.press(" ")
+			# Press both buttons
+			pyautogui.press("up")
+
+		if reference_landmark and check_left(reference_landmark, results.pose_landmarks.landmark):
+			print("left detected")
+			if counter[0] == 0:
+				pyautogui.press("left")
+				counter[0] = 1
+			
+		if reference_landmark and check_right(reference_landmark, results.pose_landmarks.landmark):
+			print("right detected")
+			if counter[0] == 0:
+				pyautogui.press("right")
+				counter[0] = 1
+
+		if reference_landmark and check_crouch(reference_landmark, results.pose_landmarks.landmark):
+			print("crouch detected")
+			pyautogui.press("down")
 
 		# plot_realtime(results.pose_landmarks.landmark) # TODO: Add graph visualization if you have time
 		text = "Body is Detected"

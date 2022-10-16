@@ -29,7 +29,7 @@ def process_image_face_detection(face_mesh, image, stored_keys, key=None, mp_dra
 
 			if check_mouth_open(face_landmarks.landmark):
 				text = "Mouth is Open"
-				pyautogui.press(" ")
+				pyautogui.press("up")
 			else:
 				text = "Mouth is Closed"
 
