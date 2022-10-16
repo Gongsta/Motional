@@ -215,6 +215,7 @@ class CapturePage(customtkinter.CTkFrame):
 		self.pong_image = self.load_image("/assets/pong.jpeg", 50)
 		self.snake_image = self.load_image("/assets/snake.png", 50)
 		self.dino_image = self.load_image("/assets/dino.png", 50)
+		self.tetris_image = self.load_image("/assets/tetris.png", 50)
 
 		self.current_pose = "hand" # Can be "face" or "body"
 
@@ -289,6 +290,16 @@ class CapturePage(customtkinter.CTkFrame):
 													corner_radius=20,
 													fg_color=None)
 		self.dino_button.grid(row=4, column=0, pady=10, padx=20)
+
+		self.tetris_button = customtkinter.CTkButton(master=self.frame_left,
+													text="",
+													width=50,
+													height=50,
+													image=self.tetris_image,
+													command=self.launch_tetris,
+													corner_radius=20,
+													fg_color=None)
+		self.tetris_button.grid(row=5, column=0, pady=10, padx=20)
 
 		# self.pong_button = customtkinter.CTkButton(master=self.frame_left,
 		# 											text="",
@@ -516,9 +527,12 @@ class CapturePage(customtkinter.CTkFrame):
 
 	def launch_snake(self):
 		subprocess.Popen(["cd {}/games/snake && python3 snake.py".format(os.getcwd())], shell=True)
-
+		
 	def launch_dino(self):
 		webbrowser.open("chrome://dino/")
+
+	def launch_tetris(self):
+		subprocess.Popen(["cd {}/games/tetris && python3 Tetris.py".format(os.getcwd())], shell=True)
 
 	def button_event(self):
 		print("Button pressed")
