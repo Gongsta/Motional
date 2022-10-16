@@ -16,6 +16,7 @@ import random
 import string
 import json
 import bcrypt
+import webbrowser
 
 
 customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
@@ -48,6 +49,7 @@ class App(customtkinter.CTk):
 
 		self.title("Motional: Motion is All You Need")
 		self.geometry(f"{App.WIDTH}x{App.HEIGHT}")
+		self.minsize(App.WIDTH, App.HEIGHT)
 		self.protocol("WM_DELETE_WINDOW", self.on_closing)  # call .on_closing() when app gets closed
 		container = customtkinter.CTkFrame(self)
 		container.pack(side = "top", fill = "both", expand = True)
@@ -261,7 +263,8 @@ class CapturePage(customtkinter.CTkFrame):
 													height=50,
 													image=self.flappy_bird_image,
 													command=self.launch_flappy_bird,
-													corner_radius=20)
+													corner_radius=20,
+													fg_color=None)
 		self.flappy_bird_button.grid(row=2, column=0, pady=10, padx=20)
 
 		self.snake_button = customtkinter.CTkButton(master=self.frame_left,
@@ -270,10 +273,21 @@ class CapturePage(customtkinter.CTkFrame):
 													height=50,
 													image=self.snake_image,
 													command=self.launch_snake,
-													corner_radius=20)
+													corner_radius=20,
+													fg_color=None)
 		self.snake_button.grid(row=3, column=0, pady=10, padx=20)
 		
 		# TODO: Add Dino
+
+		self.dino_button = customtkinter.CTkButton(master=self.frame_left,
+													text="",
+													width=50,
+													height=50,
+													image=self.dino_image,
+													command=self.launch_dino,
+													corner_radius=20,
+													fg_color=None)
+		self.dino_button.grid(row=4, column=0, pady=10, padx=20)
 
 		# self.pong_button = customtkinter.CTkButton(master=self.frame_left,
 		# 											text="",
@@ -392,8 +406,8 @@ class CapturePage(customtkinter.CTkFrame):
 													text="Run Gesture-Keyboard Control",
 													command=self.toggle_running_gesture_keyboard_control,
 													width=230,
-													fg_color="#58d35a", 
-													hover_color="#78c779"
+													fg_color="#1f6aa5", 
+													hover_color="#154870"
 													)
 		self.run_button.grid(row=4, column=4, pady=10, padx=20, sticky="e")
 
@@ -476,8 +490,8 @@ class CapturePage(customtkinter.CTkFrame):
 		self.running_gesture_keyboard_control = not self.running_gesture_keyboard_control
 		configuration = {
 			"text": "Run Gesture-Keyboard Control",
-			"fg_color": "#58d35a", 
-			"hover_color": "#78c779"
+			"fg_color": "#1f6aa5", 
+			"hover_color": "#154870"
 		} if not self.running_gesture_keyboard_control else {
 			"text": "Stop Gesture-Keyboard Control",
 			"fg_color": "#D35B58", 
@@ -493,6 +507,9 @@ class CapturePage(customtkinter.CTkFrame):
 
 	def launch_snake(self):
 		subprocess.Popen(["cd {}/games/snake && python3 snake.py".format(os.getcwd())], shell=True)
+
+	def launch_dino(self):
+		webbrowser.open("chrome://dino/")
 
 	def button_event(self):
 		print("Button pressed")
