@@ -48,12 +48,13 @@ class App(customtkinter.CTk):
 	def __init__(self):
 		super().__init__()
 
-		with open("users.json") as infile:
+		with open("users.json", "a+") as infile:
+			infile.seek(0)
 			try:
 				global users
 				users = json.load(infile)
 			except Exception as e:
-				print("Error loading users")
+				print("Error loading users" + str(e))
 
 		self.title("Motional: Motion is All You Need")
 		self.geometry(f"{App.WIDTH}x{App.HEIGHT}")
@@ -200,7 +201,7 @@ class LoginPage(customtkinter.CTkFrame):
 # 											  text="",
 # 											  height=10,
 # 											  text_font=("Roboto Medium", 8),) 
-# 		self.label_1.grid(row=2, column=0)f
+# 		self.label_1.grid(row=2, column=0)
 # 		self.button = customtkinter.CTkButton(self, text ="Submit",
 # 				command = self.submit_username)
 # 		self.button.grid(row=3, column=0, sticky="n")
