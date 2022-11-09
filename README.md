@@ -1,6 +1,7 @@
 # Motional: HackTheValley-7
-Motional is a hackathon-winning project that was developed on at [HackTheValley](https://devpost.com/software/motional) for the "Best Gaming Related Hack". Using state-of-the-art machine learning models, Motional can detect over 500 features on the human body (468 facial features, 21 hand features, and 33 body features) and use these features as control inputs to any video game using PyAutoGUI.
+Motional is a hackathon-winning project that was developed on at [HackTheValley](https://devpost.com/software/motional) for the "Best Gaming Related Hack". Using state-of-the-art machine learning models, Motional can detect over 500 features on the human body (468 facial features, 21 hand features, and 33 body features) and use these features as control inputs to any video game using PyAutoGUI. Our Devpost page can be found [here](https://devpost.com/software/motional).
 
+Click the image below to see a live demo of the product. 
 [![IMAGE ALT TEXT](http://img.youtube.com/vi/9Zgh0sf959I/0.jpg)](https://www.youtube.com/watch?v=9Zgh0sf959I "Motional")
 
 Motional operates in 3 modes: using hand gestures, face gestures, or full-body gestures. We ship certain games out-of-the-box such as Flappy Bird and Snake, with predefined gesture-to-key mappings, so you can play the game directly with the click of a button. For many of these games, jumping in real-life (body gesture) /opening the mouth (face gesture) will be mapped to pressing the "space-bar"/"up" button.
